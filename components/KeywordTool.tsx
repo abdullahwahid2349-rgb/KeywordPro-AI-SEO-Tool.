@@ -1,36 +1,14 @@
 import React, { useState, useEffect } from 'react';
-import { Search, TrendingUp, BarChart3, DollarSign, Download, Loader2, Copy, Check, FileText, Info, Calculator, ShieldCheck, Zap, Users, Star, Bookmark, History, Trash2, Sparkles } from 'lucide-react';
-import { motion, AnimatePresence } from 'framer-motion';
+import { Search, TrendingUp, BarChart3, DollarSign, Download, Loader2, Copy, Check, FileText, Info, Calculator, ShieldCheck, Zap, Users, Star, Bookmark, History, Trash2 } from 'lucide-react';
 import { getKeywordSuggestions } from '../services/geminiService';
 import { KeywordSuggestion } from '../types';
 
-const LOADING_MESSAGES = [
-  "Analyzing Search Intent...",
-  "Fetching Global Data...",
-  "Parsing SERP Signals...",
-  "Calculating Difficulty Metrics...",
-  "Neural Intent Mapping...",
-  "Finalizing Keywords..."
-];
-
-const SkeletonRow = () => (
-  <tr className="animate-pulse border-b border-gray-100 dark:border-white/5">
-    <td className="px-12 py-8">
-      <div className="flex items-center gap-6">
-        <div className="h-7 w-48 bg-gray-200 dark:bg-white/10 rounded-xl"></div>
-      </div>
-    </td>
-    <td className="px-12 py-8">
-      <div className="h-6 w-20 bg-gray-100 dark:bg-white/5 rounded-lg"></div>
-    </td>
-    <td className="px-12 py-8">
-      <div className="h-8 w-24 bg-gray-100 dark:bg-white/5 rounded-2xl"></div>
-    </td>
-    <td className="px-12 py-8">
-      <div className="h-6 w-16 bg-gray-100 dark:bg-white/5 rounded-lg"></div>
-    </td>
-  </tr>
-);
+interface SavedSearch {
+  id: string;
+  keyword: string;
+  timestamp: number;
+  results: KeywordSuggestion[];
+}
 
 export const KeywordTool: React.FC = () => {
   const [keyword, setKeyword] = useState('');
@@ -40,43 +18,6 @@ export const KeywordTool: React.FC = () => {
   const [hoveredDifficulty, setHoveredDifficulty] = useState<number | null>(null);
   const [savedSearches, setSavedSearches] = useState<SavedSearch[]>([]);
   const [justSaved, setJustSaved] = useState(false);
-  const [loadingProgress, setLoadingProgress] = useState(0);
-  const [loadingMessageIndex, setLoadingMessageIndex] = useState(0);
-
-  // Rotating loading messages
-  useEffect(() => {
-    let interval: NodeJS.Timeout;
-    if (loading) {
-      interval = setInterval(() => {
-        setLoadingMessageIndex((prev) => (prev + 1) % LOADING_MESSAGES.length);
-      }, 600);
-    } else {
-      setLoadingMessageIndex(0);
-    }
-    return () => clearInterval(interval);
-  }, [loading]);
-
-  // Loading bar progress
-  useEffect(() => {
-    let interval: NodeJS.Timeout;
-    if (loading) {
-      setLoadingProgress(0);
-      interval = setInterval(() => {
-        setLoadingProgress((prev) => {
-          if (prev >= 95) return prev;
-          return prev + (100 - prev) * 0.1;
-        });
-      }, 200);
-    } else {
-      setLoadingProgress(100);
-      const timeout = setTimeout(() => setLoadingProgress(0), 500);
-      return () => {
-        clearInterval(interval);
-        clearTimeout(timeout);
-      };
-    }
-    return () => clearInterval(interval);
-  }, [loading]);
 
   // Load saved searches from localStorage
   useEffect(() => {
@@ -101,19 +42,8 @@ export const KeywordTool: React.FC = () => {
     
     setLoading(true);
     setJustSaved(false);
-    
-    // Artificial delay to ensure 3s experience as requested
-    const startTime = Date.now();
-    
     try {
       const data = await getKeywordSuggestions(keyword);
-      
-      // Ensure at least 2.5s delay for the animation
-      const elapsed = Date.now() - startTime;
-      if (elapsed < 2500) {
-        await new Promise(resolve => setTimeout(resolve, 2500 - elapsed));
-      }
-      
       setResults(data);
     } catch (err) {
       console.error(err);
@@ -181,13 +111,7 @@ export const KeywordTool: React.FC = () => {
   };
 
   return (
-    <div className="max-w-6xl mx-auto space-y-12 relative">
-      {/* Top Loading Bar */}
-      <div 
-        className="fixed top-0 left-0 h-1 bg-blue-600 dark:bg-blue-500 z-[200] transition-all duration-300 shadow-[0_0_10px_rgba(37,99,235,0.8)]"
-        style={{ width: `${loadingProgress}%`, opacity: loadingProgress > 0 && loadingProgress < 100 ? 1 : 0 }}
-      />
-
+    <div className="max-w-6xl mx-auto space-y-12">
       {/* Search Header */}
       <div className="bg-white dark:bg-white/[0.03] p-8 md:p-20 rounded-[4rem] shadow-2xl border border-blue-50/50 dark:border-white/5 text-center space-y-8 relative overflow-hidden transition-all duration-500">
         <div className="absolute -top-12 -right-12 p-8 opacity-5 dark:opacity-10">
@@ -199,15 +123,21 @@ export const KeywordTool: React.FC = () => {
             <Zap className="w-3.5 h-3.5 fill-current" />
             Gemini SEO Engine v3.0
           </div>
-          <h1 className="text-5xl md:text-6xl font-black text-gray-900 dark:text-white tracking-tight leading-tight">
-            Scientific <span className="text-blue-600 dark:text-blue-400">SEO Research</span>
+          <h1 className="text-5xl md:text-6xl lg:text-7xl font-black text-gray-900 dark:text-white tracking-tight leading-tight">
+            Rank 10x Faster with <br/>
+            <span className="text-blue-600 dark:text-blue-400">AI-Driven Keyword Research</span>
           </h1>
           <p className="text-gray-600 dark:text-gray-300 text-xl max-w-2xl mx-auto leading-relaxed font-medium">
             Analyze keyword authority, velocity, and commercial intent with precision.
           </p>
+          <div className="pt-4 flex justify-center gap-4">
+            <button className="bg-blue-600 hover:bg-blue-700 text-white px-8 py-4 rounded-3xl font-black transition-all shadow-xl shadow-blue-500/20 uppercase tracking-widest text-sm">
+              Start Free Trial
+            </button>
+          </div>
         </div>
         
-        <form onSubmit={handleSearch} className="flex flex-col md:flex-row gap-4 max-w-3xl mx-auto relative z-10">
+        <form onSubmit={handleSearch} className="flex flex-col md:flex-row gap-4 max-w-3xl mx-auto relative z-10 mt-8">
           <div className="relative flex-1">
             <Search className="absolute left-6 top-1/2 -translate-y-1/2 text-gray-400 dark:text-gray-600 w-6 h-6" />
             <input
@@ -226,6 +156,17 @@ export const KeywordTool: React.FC = () => {
             {loading ? <Loader2 className="w-6 h-6 animate-spin" /> : 'Analyze'}
           </button>
         </form>
+      </div>
+
+      {/* Social Proof */}
+      <div className="py-12 text-center space-y-8 animate-in fade-in slide-in-from-bottom-4 duration-700">
+        <p className="text-sm font-black text-gray-400 dark:text-gray-500 uppercase tracking-widest">Trusted by 500+ SEO Experts</p>
+        <div className="flex flex-wrap justify-center items-center gap-12 opacity-50 grayscale hover:grayscale-0 transition-all duration-500">
+          <div className="flex items-center gap-2 font-black text-2xl text-gray-900 dark:text-white"><div className="w-8 h-8 bg-blue-600 rounded-lg"></div> TechFlow</div>
+          <div className="flex items-center gap-2 font-black text-2xl text-gray-900 dark:text-white"><div className="w-8 h-8 bg-emerald-500 rounded-full"></div> GrowthMetrics</div>
+          <div className="flex items-center gap-2 font-black text-2xl text-gray-900 dark:text-white"><div className="w-8 h-8 bg-rose-500 rotate-45"></div> NexusSEO</div>
+          <div className="flex items-center gap-2 font-black text-2xl text-gray-900 dark:text-white"><div className="w-8 h-8 bg-amber-500 rounded-tl-xl rounded-br-xl"></div> RankBoost</div>
+        </div>
       </div>
 
       {/* History Section */}
@@ -269,165 +210,210 @@ export const KeywordTool: React.FC = () => {
 
       {/* Loading Box */}
       {loading && (
-        <div className="bg-gray-900 dark:bg-white/[0.02] text-white p-10 rounded-[3rem] shadow-2xl flex flex-col md:flex-row items-center gap-10 border border-white/10 relative overflow-hidden">
+        <div className="bg-gray-900 dark:bg-white/[0.02] text-white p-10 rounded-[3rem] shadow-2xl flex flex-col md:flex-row items-center gap-10 border border-white/10 relative overflow-hidden animate-pulse">
             <div className="bg-white/5 p-8 rounded-[2rem] border border-white/10 font-mono text-2xl md:text-3xl relative z-10">
                 KD = (BA + DA) × <span className="text-blue-500 dark:text-blue-400 font-black">log(C)</span>
             </div>
-            <div className="space-y-3 relative z-10 flex-1">
-                <div className="flex items-center gap-3">
-                  <Loader2 className="w-5 h-5 animate-spin text-blue-500" />
-                  <AnimatePresence mode="wait">
-                    <motion.h4 
-                      key={loadingMessageIndex}
-                      initial={{ opacity: 0, y: 10 }}
-                      animate={{ opacity: 1, y: 0 }}
-                      exit={{ opacity: 0, y: -10 }}
-                      className="font-black text-2xl tracking-tight"
-                    >
-                      {LOADING_MESSAGES[loadingMessageIndex]}
-                    </motion.h4>
-                  </AnimatePresence>
-                </div>
+            <div className="space-y-3 relative z-10">
+                <h4 className="font-black text-2xl tracking-tight">Processing Intelligence...</h4>
                 <p className="text-gray-300 dark:text-gray-400 text-sm font-medium">Aggregating signals for 99.8% precision metrics.</p>
             </div>
-            <div className="absolute inset-0 bg-gradient-to-r from-blue-600/10 to-transparent animate-pulse pointer-events-none"></div>
         </div>
       )}
 
       {/* Results Section */}
-      <AnimatePresence>
-        {(results.length > 0 || loading) && (
-          <motion.div 
-            initial={{ opacity: 0, y: 20 }}
-            animate={{ opacity: 1, y: 0 }}
-            transition={{ type: 'spring', damping: 25, stiffness: 120 }}
-            className="space-y-8"
-          >
-            <div className="flex flex-col md:flex-row items-center justify-between gap-6 px-4">
-              <div className="flex items-center gap-6">
-                <h3 className="text-3xl font-black text-gray-900 dark:text-white flex items-center gap-3 tracking-tight">
-                  <FileText className="w-8 h-8 text-blue-600 dark:text-blue-400" />
-                  {loading ? 'Analyzing Niche...' : `Niche Results: ${keyword}`}
-                </h3>
-                {!loading && (
-                  <button 
-                    onClick={saveAnalysis}
-                    disabled={justSaved}
-                    className={`flex items-center gap-2 px-5 py-2.5 rounded-2xl font-black text-[10px] uppercase tracking-widest transition-all ${
-                      justSaved 
-                      ? 'bg-green-50 dark:bg-green-500/10 text-green-700 dark:text-green-400 border border-green-200 dark:border-green-500/20' 
-                      : 'bg-white dark:bg-white/5 text-gray-500 dark:text-gray-400 hover:text-blue-600 dark:hover:text-blue-400 border border-gray-100 dark:border-white/10'
-                    }`}
-                  >
-                    {justSaved ? <><Check className="w-3 h-3" /> Saved</> : <><Bookmark className="w-3 h-3" /> Save Analysis</>}
-                  </button>
-                )}
-              </div>
-              {!loading && (
-                <button 
-                  onClick={exportToCSV}
-                  className="flex items-center gap-3 px-8 py-5 bg-gray-900 dark:bg-white text-white dark:text-black rounded-3xl font-black text-xs uppercase tracking-widest hover:bg-black hover:scale-105 active:scale-95 transition-all shadow-xl"
-                >
-                  <Download className="w-5 h-5" />
-                  Export CSV
-                </button>
-              )}
+      {results.length > 0 && !loading && (
+        <div className="space-y-8 animate-in fade-in slide-in-from-bottom-4 duration-500">
+          <div className="flex flex-col md:flex-row items-center justify-between gap-6 px-4">
+            <div className="flex items-center gap-6">
+              <h3 className="text-3xl font-black text-gray-900 dark:text-white flex items-center gap-3 tracking-tight">
+                <FileText className="w-8 h-8 text-blue-600 dark:text-blue-400" />
+                Niche Results: {keyword}
+              </h3>
+              <button 
+                onClick={saveAnalysis}
+                disabled={justSaved}
+                className={`flex items-center gap-2 px-5 py-2.5 rounded-2xl font-black text-[10px] uppercase tracking-widest transition-all ${
+                  justSaved 
+                  ? 'bg-green-50 dark:bg-green-500/10 text-green-700 dark:text-green-400 border border-green-200 dark:border-green-500/20' 
+                  : 'bg-white dark:bg-white/5 text-gray-500 dark:text-gray-400 hover:text-blue-600 dark:hover:text-blue-400 border border-gray-100 dark:border-white/10'
+                }`}
+              >
+                {justSaved ? <><Check className="w-3 h-3" /> Saved</> : <><Bookmark className="w-3 h-3" /> Save Analysis</>}
+              </button>
             </div>
-
-            <div className="bg-white dark:bg-white/[0.03] rounded-[3.5rem] shadow-2xl border border-gray-100 dark:border-white/5 overflow-hidden transition-all duration-500">
-              <div className="overflow-x-auto">
-                <table className="w-full text-left">
-                  <thead>
-                    <tr className="bg-gray-50/50 dark:bg-white/5 border-b border-gray-100 dark:border-white/5">
-                      <th className="px-12 py-8 text-[10px] font-black text-gray-600 dark:text-gray-300 uppercase tracking-[0.4em]">Keyword Prospect</th>
-                      <th className="px-12 py-8 text-[10px] font-black text-gray-600 dark:text-gray-300 uppercase tracking-[0.4em]">Volume</th>
-                      <th className="px-12 py-8 text-[10px] font-black text-gray-600 dark:text-gray-300 uppercase tracking-[0.4em]">Difficulty</th>
-                      <th className="px-12 py-8 text-[10px] font-black text-gray-600 dark:text-gray-300 uppercase tracking-[0.4em]">Avg CPC</th>
-                    </tr>
-                  </thead>
-                  <tbody className="divide-y divide-gray-100 dark:divide-white/5">
-                    {loading ? (
-                      <>
-                        <SkeletonRow />
-                        <SkeletonRow />
-                        <SkeletonRow />
-                        <SkeletonRow />
-                        <SkeletonRow />
-                      </>
-                    ) : (
-                      results.map((item, idx) => (
-                        <tr key={idx} className="hover:bg-blue-50/30 dark:hover:bg-blue-500/5 transition-all group">
-                          <td className="px-12 py-8">
-                            <div className="flex items-center gap-6">
-                              <span className="text-xl font-black text-gray-900 dark:text-white tracking-tight">{item.keyword}</span>
-                              <button 
-                                onClick={() => copyToClipboard(item.keyword, idx)}
-                                className="p-2.5 bg-gray-50 dark:bg-white/5 rounded-xl transition-all text-gray-400 dark:text-gray-500 hover:text-blue-600 opacity-0 group-hover:opacity-100"
-                              >
-                                {copiedIndex === idx ? <Check className="w-4 h-4" /> : <Copy className="w-4 h-4" />}
-                              </button>
-                            </div>
-                          </td>
-                          <td className="px-12 py-8">
-                            <div className="flex items-center gap-3 font-black text-gray-900 dark:text-white text-lg">
-                              <BarChart3 className="w-5 h-5 text-gray-300 dark:text-gray-600" />
-                              <span>{item.volume}</span>
-                            </div>
-                          </td>
-                          <td className="px-12 py-8 relative">
-                            <div 
-                              className="relative inline-block cursor-help group/tip"
-                              onMouseEnter={() => setHoveredDifficulty(idx)}
-                              onMouseLeave={() => setHoveredDifficulty(null)}
-                            >
-                              <span className={`px-5 py-2 rounded-2xl text-[10px] font-black border uppercase tracking-[0.1em] ${getDifficultyColor(item.difficulty)} transition-all hover:scale-110`}>
-                                {item.difficulty}
-                              </span>
-                              
-                              {hoveredDifficulty === idx && (
-                                <div className="absolute left-1/2 -translate-x-1/2 bottom-full mb-4 w-64 p-6 bg-white dark:bg-[#121212] border border-gray-200 dark:border-white/10 rounded-3xl shadow-2xl z-50 animate-in fade-in zoom-in-95 duration-200">
-                                    <div className="space-y-4">
-                                      <div className="flex items-center gap-2">
-                                        <Calculator className="w-4 h-4 text-blue-500" />
-                                        <span className="text-[10px] font-black uppercase tracking-widest text-gray-500 dark:text-gray-400">Difficulty Model</span>
-                                      </div>
-                                      <div className="bg-gray-50 dark:bg-white/5 p-3 rounded-xl border border-gray-100 dark:border-white/5">
-                                        <code className="text-[11px] font-mono text-blue-600 dark:text-blue-400 font-black">KD = (BA + DA) × log(C)</code>
-                                      </div>
-                                      <p className="text-[10px] text-gray-600 dark:text-gray-400 font-medium leading-tight">
-                                        Factors: Backlink Age, Domain Authority, and SERP Competition.
-                                      </p>
-                                    </div>
-                                    <div className="absolute -bottom-2 left-1/2 -translate-x-1/2 w-4 h-4 bg-white dark:bg-[#121212] border-r border-b border-gray-200 dark:border-white/10 rotate-45"></div>
-                                </div>
-                              )}
-                            </div>
-                          </td>
-                          <td className="px-12 py-8">
-                            <div className="flex items-center gap-2 font-black text-gray-900 dark:text-white text-lg tabular-nums">
-                              <DollarSign className="w-5 h-5 text-gray-300 dark:text-gray-600 group-hover:text-green-600 transition-colors" />
-                              <span>{item.cpc}</span>
-                            </div>
-                          </td>
-                        </tr>
-                      ))
-                    )}
-                  </tbody>
-                </table>
-              </div>
-            </div>
-          </motion.div>
-        )}
-      </AnimatePresence>
-
-      {/* Empty State */}
-      {results.length === 0 && !loading && (
-        <div className="text-center py-40 bg-white dark:bg-white/[0.03] rounded-[4rem] border border-gray-100 dark:border-white/5 shadow-2xl transition-all duration-500">
-          <div className="bg-blue-50 dark:bg-blue-500/10 w-32 h-32 rounded-[2.5rem] flex items-center justify-center mx-auto mb-10 border border-blue-100 dark:border-blue-500/20 rotate-12 transition-transform duration-500">
-            <TrendingUp className="w-14 h-14 text-blue-500 dark:text-blue-400" />
+            <button 
+              onClick={exportToCSV}
+              className="flex items-center gap-3 px-8 py-5 bg-gray-900 dark:bg-white text-white dark:text-black rounded-3xl font-black text-xs uppercase tracking-widest hover:bg-black hover:scale-105 active:scale-95 transition-all shadow-xl"
+            >
+              <Download className="w-5 h-5" />
+              Export CSV
+            </button>
           </div>
-          <h3 className="text-4xl font-black text-gray-900 dark:text-white tracking-tight">Unlock Your Potential</h3>
-          <p className="text-gray-600 dark:text-gray-400 mt-6 text-xl max-w-xl mx-auto leading-relaxed font-medium">Analyze global search volumes and competition instantly.</p>
+
+          <div className="bg-white dark:bg-white/[0.03] rounded-[3.5rem] shadow-2xl border border-gray-100 dark:border-white/5 overflow-hidden transition-all duration-500">
+            <div className="overflow-x-auto">
+              <table className="w-full text-left">
+                <thead>
+                  <tr className="bg-gray-50/50 dark:bg-white/5 border-b border-gray-100 dark:border-white/5">
+                    <th className="px-12 py-8 text-[10px] font-black text-gray-600 dark:text-gray-300 uppercase tracking-[0.4em]">Keyword Prospect</th>
+                    <th className="px-12 py-8 text-[10px] font-black text-gray-600 dark:text-gray-300 uppercase tracking-[0.4em]">Volume</th>
+                    <th className="px-12 py-8 text-[10px] font-black text-gray-600 dark:text-gray-300 uppercase tracking-[0.4em]">Difficulty</th>
+                    <th className="px-12 py-8 text-[10px] font-black text-gray-600 dark:text-gray-300 uppercase tracking-[0.4em]">Avg CPC</th>
+                  </tr>
+                </thead>
+                <tbody className="divide-y divide-gray-100 dark:divide-white/5">
+                  {results.map((item, idx) => (
+                    <tr key={idx} className="hover:bg-blue-50/30 dark:hover:bg-blue-500/5 transition-all group">
+                      <td className="px-12 py-8">
+                        <div className="flex items-center gap-6">
+                          <span className="text-xl font-black text-gray-900 dark:text-white tracking-tight">{item.keyword}</span>
+                          <button 
+                            onClick={() => copyToClipboard(item.keyword, idx)}
+                            className="p-2.5 bg-gray-50 dark:bg-white/5 rounded-xl transition-all text-gray-400 dark:text-gray-500 hover:text-blue-600 opacity-0 group-hover:opacity-100"
+                          >
+                            {copiedIndex === idx ? <Check className="w-4 h-4" /> : <Copy className="w-4 h-4" />}
+                          </button>
+                        </div>
+                      </td>
+                      <td className="px-12 py-8">
+                        <div className="flex items-center gap-3 font-black text-gray-900 dark:text-white text-lg">
+                          <BarChart3 className="w-5 h-5 text-gray-300 dark:text-gray-600" />
+                          <span>{item.volume}</span>
+                        </div>
+                      </td>
+                      <td className="px-12 py-8 relative">
+                        <div 
+                          className="relative inline-block cursor-help group/tip"
+                          onMouseEnter={() => setHoveredDifficulty(idx)}
+                          onMouseLeave={() => setHoveredDifficulty(null)}
+                        >
+                          <span className={`px-5 py-2 rounded-2xl text-[10px] font-black border uppercase tracking-[0.1em] ${getDifficultyColor(item.difficulty)} transition-all hover:scale-110`}>
+                            {item.difficulty}
+                          </span>
+                          
+                          {hoveredDifficulty === idx && (
+                            <div className="absolute left-1/2 -translate-x-1/2 bottom-full mb-4 w-64 p-6 bg-white dark:bg-[#121212] border border-gray-200 dark:border-white/10 rounded-3xl shadow-2xl z-50 animate-in fade-in zoom-in-95 duration-200">
+                                <div className="space-y-4">
+                                  <div className="flex items-center gap-2">
+                                    <Calculator className="w-4 h-4 text-blue-500" />
+                                    <span className="text-[10px] font-black uppercase tracking-widest text-gray-500 dark:text-gray-400">Difficulty Model</span>
+                                  </div>
+                                  <div className="bg-gray-50 dark:bg-white/5 p-3 rounded-xl border border-gray-100 dark:border-white/5">
+                                    <code className="text-[11px] font-mono text-blue-600 dark:text-blue-400 font-black">KD = (BA + DA) × log(C)</code>
+                                  </div>
+                                  <p className="text-[10px] text-gray-600 dark:text-gray-400 font-medium leading-tight">
+                                    Factors: Backlink Age, Domain Authority, and SERP Competition.
+                                  </p>
+                                </div>
+                                <div className="absolute -bottom-2 left-1/2 -translate-x-1/2 w-4 h-4 bg-white dark:bg-[#121212] border-r border-b border-gray-200 dark:border-white/10 rotate-45"></div>
+                            </div>
+                          )}
+                        </div>
+                      </td>
+                      <td className="px-12 py-8">
+                        <div className="flex items-center gap-2 font-black text-gray-900 dark:text-white text-lg tabular-nums">
+                          <DollarSign className="w-5 h-5 text-gray-300 dark:text-gray-600 group-hover:text-green-600 transition-colors" />
+                          <span>{item.cpc}</span>
+                        </div>
+                      </td>
+                    </tr>
+                  ))}
+                </tbody>
+              </table>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* Empty State & Pricing */}
+      {results.length === 0 && !loading && (
+        <div className="space-y-24">
+          <div className="text-center py-20 bg-white dark:bg-white/[0.03] rounded-[4rem] border border-gray-100 dark:border-white/5 shadow-2xl transition-all duration-500">
+            <div className="bg-blue-50 dark:bg-blue-500/10 w-32 h-32 rounded-[2.5rem] flex items-center justify-center mx-auto mb-10 border border-blue-100 dark:border-blue-500/20 rotate-12 transition-transform duration-500">
+              <TrendingUp className="w-14 h-14 text-blue-500 dark:text-blue-400" />
+            </div>
+            <h3 className="text-4xl font-black text-gray-900 dark:text-white tracking-tight">Unlock Your Potential</h3>
+            <p className="text-gray-600 dark:text-gray-400 mt-6 text-xl max-w-xl mx-auto leading-relaxed font-medium">Analyze global search volumes and competition instantly.</p>
+          </div>
+
+          {/* Pricing Table */}
+          <div className="space-y-12">
+            <div className="text-center space-y-4">
+              <h2 className="text-4xl md:text-5xl font-black text-gray-900 dark:text-white tracking-tight">Simple, Transparent Pricing</h2>
+              <p className="text-gray-600 dark:text-gray-400 text-lg font-medium">Choose the perfect plan for your SEO needs.</p>
+            </div>
+            
+            <div className="grid md:grid-cols-3 gap-8">
+              {/* Free Plan */}
+              <div className="bg-white dark:bg-white/[0.02] border border-gray-100 dark:border-white/5 rounded-[3rem] p-10 shadow-xl flex flex-col">
+                <div className="space-y-4 mb-8">
+                  <h3 className="text-2xl font-black text-gray-900 dark:text-white">Free</h3>
+                  <div className="flex items-baseline gap-2">
+                    <span className="text-5xl font-black text-gray-900 dark:text-white">$0</span>
+                    <span className="text-gray-500 font-bold">/mo</span>
+                  </div>
+                  <p className="text-gray-500 dark:text-gray-400 font-medium">Perfect for beginners.</p>
+                </div>
+                <ul className="space-y-4 mb-10 flex-1">
+                  <li className="flex items-center gap-3 text-gray-600 dark:text-gray-300 font-medium"><Check className="w-5 h-5 text-emerald-500" /> 10 Searches / day</li>
+                  <li className="flex items-center gap-3 text-gray-600 dark:text-gray-300 font-medium"><Check className="w-5 h-5 text-emerald-500" /> Basic Difficulty Score</li>
+                  <li className="flex items-center gap-3 text-gray-600 dark:text-gray-300 font-medium"><Check className="w-5 h-5 text-emerald-500" /> 7-day History</li>
+                </ul>
+                <button className="w-full py-4 bg-gray-100 hover:bg-gray-200 dark:bg-white/5 dark:hover:bg-white/10 text-gray-900 dark:text-white rounded-2xl font-black uppercase tracking-widest text-sm transition-all">
+                  Get Started
+                </button>
+              </div>
+
+              {/* Pro Plan */}
+              <div className="bg-gray-900 dark:bg-black border border-blue-500/30 rounded-[3rem] p-10 shadow-2xl shadow-blue-500/10 flex flex-col relative transform md:-translate-y-4">
+                <div className="absolute -top-5 left-1/2 -translate-x-1/2 bg-blue-600 text-white px-4 py-1 rounded-full text-[10px] font-black uppercase tracking-widest">Most Popular</div>
+                <div className="space-y-4 mb-8">
+                  <h3 className="text-2xl font-black text-white">Pro</h3>
+                  <div className="flex items-baseline gap-2">
+                    <span className="text-5xl font-black text-white">$19</span>
+                    <span className="text-gray-400 font-bold">/mo</span>
+                  </div>
+                  <p className="text-gray-400 font-medium">For growing startups.</p>
+                </div>
+                <ul className="space-y-4 mb-10 flex-1">
+                  <li className="flex items-center gap-3 text-gray-300 font-medium"><Check className="w-5 h-5 text-blue-400" /> Unlimited Searches</li>
+                  <li className="flex items-center gap-3 text-gray-300 font-medium"><Check className="w-5 h-5 text-blue-400" /> Neural Intent Engine</li>
+                  <li className="flex items-center gap-3 text-gray-300 font-medium"><Check className="w-5 h-5 text-blue-400" /> CSV Exports</li>
+                  <li className="flex items-center gap-3 text-gray-300 font-medium"><Check className="w-5 h-5 text-blue-400" /> Priority Support</li>
+                </ul>
+                <button className="w-full py-4 bg-blue-600 hover:bg-blue-700 text-white rounded-2xl font-black uppercase tracking-widest text-sm transition-all shadow-xl shadow-blue-500/20">
+                  Get Started
+                </button>
+              </div>
+
+              {/* Agency Plan */}
+              <div className="bg-white dark:bg-white/[0.02] border border-gray-100 dark:border-white/5 rounded-[3rem] p-10 shadow-xl flex flex-col">
+                <div className="space-y-4 mb-8">
+                  <h3 className="text-2xl font-black text-gray-900 dark:text-white">Agency</h3>
+                  <div className="flex items-baseline gap-2">
+                    <span className="text-5xl font-black text-gray-900 dark:text-white">$49</span>
+                    <span className="text-gray-500 font-bold">/mo</span>
+                  </div>
+                  <p className="text-gray-500 dark:text-gray-400 font-medium">For power users & teams.</p>
+                </div>
+                <ul className="space-y-4 mb-10 flex-1">
+                  <li className="flex items-center gap-3 text-gray-600 dark:text-gray-300 font-medium"><Check className="w-5 h-5 text-emerald-500" /> Everything in Pro</li>
+                  <li className="flex items-center gap-3 text-gray-600 dark:text-gray-300 font-medium"><Check className="w-5 h-5 text-emerald-500" /> API Access</li>
+                  <li className="flex items-center gap-3 text-gray-600 dark:text-gray-300 font-medium"><Check className="w-5 h-5 text-emerald-500" /> Custom Reporting</li>
+                  <li className="flex items-center gap-3 text-gray-600 dark:text-gray-300 font-medium"><Check className="w-5 h-5 text-emerald-500" /> 5 Team Members</li>
+                </ul>
+                <button className="w-full py-4 bg-gray-100 hover:bg-gray-200 dark:bg-white/5 dark:hover:bg-white/10 text-gray-900 dark:text-white rounded-2xl font-black uppercase tracking-widest text-sm transition-all">
+                  Get Started
+                </button>
+              </div>
+            </div>
+            
+            <div className="flex justify-center items-center gap-6 pt-8">
+              <div className="flex items-center gap-2 text-sm font-bold text-gray-500 dark:text-gray-400"><ShieldCheck className="w-5 h-5 text-emerald-500" /> Secure Checkout</div>
+              <div className="flex items-center gap-2 text-sm font-bold text-gray-500 dark:text-gray-400"><Zap className="w-5 h-5 text-blue-500" /> Instant Access</div>
+            </div>
+          </div>
         </div>
       )}
     </div>

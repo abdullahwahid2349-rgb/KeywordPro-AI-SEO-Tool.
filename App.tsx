@@ -276,6 +276,7 @@ const App: React.FC = () => {
                     <FooterLink label="Documentation" tab="DOCS" />
                     <FooterLink label="API Access" tab="API" />
                     <FooterLink label="Pricing" tab="PRICING" />
+                    <FooterLink label="Roadmap" tab="FEATURES" />
                 </ul>
             </div>
 
