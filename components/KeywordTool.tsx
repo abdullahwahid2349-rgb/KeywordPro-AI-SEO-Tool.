@@ -45,30 +45,27 @@ export const KeywordTool: React.FC = () => {
     try {
       const data = await getKeywordSuggestions(keyword);
       setResults(data);
+      
+      // Automatically save to history
+      if (data && data.length > 0) {
+        const newSave: SavedSearch = {
+          id: Math.random().toString(36).substr(2, 9),
+          keyword: keyword,
+          timestamp: Date.now(),
+          results: data
+        };
+        
+        setSavedSearches(prev => {
+          // Remove if already exists to move it to the top
+          const filtered = prev.filter(s => s.keyword.toLowerCase() !== keyword.toLowerCase());
+          return [newSave, ...filtered].slice(0, 10);
+        });
+      }
     } catch (err) {
       console.error(err);
     } finally {
       setLoading(false);
     }
-  };
-
-  const saveAnalysis = () => {
-    if (!keyword || results.length === 0) return;
-    
-    const newSave: SavedSearch = {
-      id: Math.random().toString(36).substr(2, 9),
-      keyword: keyword,
-      timestamp: Date.now(),
-      results: results
-    };
-
-    if (savedSearches.some(s => s.keyword.toLowerCase() === keyword.toLowerCase() && s.results.length === results.length)) {
-        setJustSaved(true);
-        return;
-    }
-
-    setSavedSearches(prev => [newSave, ...prev].slice(0, 10)); 
-    setJustSaved(true);
   };
 
   const loadAnalysis = (save: SavedSearch) => {
@@ -230,17 +227,6 @@ export const KeywordTool: React.FC = () => {
                 <FileText className="w-8 h-8 text-blue-600 dark:text-blue-400" />
                 Niche Results: {keyword}
               </h3>
-              <button 
-                onClick={saveAnalysis}
-                disabled={justSaved}
-                className={`flex items-center gap-2 px-5 py-2.5 rounded-2xl font-black text-[10px] uppercase tracking-widest transition-all ${
-                  justSaved 
-                  ? 'bg-green-50 dark:bg-green-500/10 text-green-700 dark:text-green-400 border border-green-200 dark:border-green-500/20' 
-                  : 'bg-white dark:bg-white/5 text-gray-500 dark:text-gray-400 hover:text-blue-600 dark:hover:text-blue-400 border border-gray-100 dark:border-white/10'
-                }`}
-              >
-                {justSaved ? <><Check className="w-3 h-3" /> Saved</> : <><Bookmark className="w-3 h-3" /> Save Analysis</>}
-              </button>
             </div>
             <button 
               onClick={exportToCSV}
