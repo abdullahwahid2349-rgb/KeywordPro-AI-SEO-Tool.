@@ -4,8 +4,8 @@ import { ShieldCheck, Lock, EyeOff, Trash2 } from 'lucide-react';
 
 export const PrivacyPolicy: React.FC = () => {
   return (
-    <div className="max-w-4xl mx-auto space-y-12 animate-in fade-in slide-in-from-bottom-6 duration-700 pb-20">
-      <div className="flex items-center gap-6 mb-16">
+    <div className="max-w-4xl mx-auto space-y-12 pb-20">
+      <div className="flex items-center gap-6 mb-16 reveal-on-scroll animate-fade-in">
         <div className="bg-blue-600 dark:bg-blue-500 p-5 rounded-3xl shadow-xl shadow-blue-200 dark:shadow-none">
           <ShieldCheck className="w-8 h-8 text-white" />
         </div>
@@ -22,7 +22,7 @@ export const PrivacyPolicy: React.FC = () => {
           { icon: <Trash2 className="text-rose-600 dark:text-rose-400"/>, title: "Session Ephemerality", text: "All intelligence data is purged immediately upon session termination or tab closure." },
           { icon: <ShieldCheck className="text-green-600 dark:text-green-400"/>, title: "AES-256 Encryption", text: "Full end-to-end encryption for all data packets moving between your client and our engine." },
         ].map((item, i) => (
-          <div key={i} className="bg-white dark:bg-white/[0.03] p-10 rounded-[3rem] border border-gray-100 dark:border-white/5 shadow-sm flex items-start gap-8 transition-colors">
+          <div key={i} className={`bg-white dark:bg-white/[0.03] p-10 rounded-[3rem] border border-gray-100 dark:border-white/5 shadow-sm flex items-start gap-8 transition-colors reveal-on-scroll animate-slide-up delay-${(i + 1) * 100}`}>
             <div className="bg-gray-50 dark:bg-white/5 p-4 rounded-2xl">{item.icon}</div>
             <div className="space-y-2">
               <h4 className="font-black text-gray-900 dark:text-white text-lg">{item.title}</h4>
@@ -32,7 +32,7 @@ export const PrivacyPolicy: React.FC = () => {
         ))}
       </div>
 
-      <div className="prose prose-blue dark:prose-invert max-w-none text-gray-600 dark:text-gray-400 font-medium space-y-12">
+      <div className="prose prose-blue dark:prose-invert max-w-none text-gray-600 dark:text-gray-400 font-medium space-y-12 reveal-on-scroll animate-slide-up">
         <section className="space-y-6">
           <h3 className="text-2xl font-black text-gray-900 dark:text-white tracking-tight">1. Data Sovereignty</h3>
           <p className="leading-relaxed">KeywordPro operates as a stateless analyzer. We do not require account registration for basic usage, ensuring that your research identity remains decoupled from your search results.</p>

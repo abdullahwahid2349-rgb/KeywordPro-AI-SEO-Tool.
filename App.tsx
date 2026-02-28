@@ -12,10 +12,13 @@ import { TermsOfService } from './components/TermsOfService';
 import { Support } from './components/Support';
 import { ContactModal } from './components/ContactModal';
 import { AuthModal } from './components/AuthModal';
+import { FeedbackModal } from './components/FeedbackModal';
+import { OnboardingModal } from './components/OnboardingModal';
 import { Zap, ShieldCheck, Star, Users, Briefcase, Linkedin, X, BookOpen, MessageCircle, Search, Mail, Activity, CheckCircle, Shield, Rocket, Cpu, Database, Globe, Sun, Moon, ChevronRight, Code, Menu, Volume2, VolumeX } from 'lucide-react';
 import { audio } from './utils/audioUtils';
 import { typingAudio } from './utils/typingSoundUtils';
 import { satisfyingAudio } from './utils/satisfyingAudioEngine';
+import { useScrollReveal } from './utils/useScrollReveal';
 
 export const runtime = 'edge';
 export const viewport = {
@@ -27,11 +30,14 @@ export const viewport = {
 export type Tab = 'TOOL' | 'FEATURES' | 'BLOG' | 'API' | 'DOCS' | 'PRICING' | 'ABOUT' | 'PRIVACY' | 'TERMS' | 'SUPPORT';
 
 const App: React.FC = () => {
+  useScrollReveal();
   const [activeTab, setActiveTab] = useState<Tab>('TOOL');
   const [isContactOpen, setIsContactOpen] = useState(false);
   const [isAuthOpen, setIsAuthOpen] = useState(false);
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
   const [isMuted, setIsMuted] = useState(true);
+  const [isFeedbackOpen, setIsFeedbackOpen] = useState(false);
+  const [isOnboardingOpen, setIsOnboardingOpen] = useState(false);
   
   const [theme, setTheme] = useState<'light' | 'dark'>(() => {
     if (typeof window !== 'undefined') {
@@ -44,6 +50,13 @@ const App: React.FC = () => {
 
   // Handle Audio Initialization on first interaction
   useEffect(() => {
+    // Check if onboarding has been shown
+    const hasSeenOnboarding = localStorage.getItem('keywordpro_onboarding_seen');
+    if (!hasSeenOnboarding) {
+      setIsOnboardingOpen(true);
+      localStorage.setItem('keywordpro_onboarding_seen', 'true');
+    }
+
     setIsMuted(audio.getMuteState());
 
     const handleInteraction = () => {
@@ -136,6 +149,8 @@ const App: React.FC = () => {
       {/* Modals - Passed Theme for proper dark mode integration */}
       <ContactModal isOpen={isContactOpen} onClose={() => setIsContactOpen(false)} />
       <AuthModal isOpen={isAuthOpen} onClose={() => setIsAuthOpen(false)} />
+      <FeedbackModal isOpen={isFeedbackOpen} onClose={() => setIsFeedbackOpen(false)} />
+      <OnboardingModal isOpen={isOnboardingOpen} onClose={() => setIsOnboardingOpen(false)} />
 
       {/* Header with Glassmorphism */}
       <header className="sticky top-0 z-50 bg-white/70 dark:bg-black/50 glass-effect border-b border-gray-200 dark:border-white/10 transition-all duration-500">
@@ -285,7 +300,7 @@ const App: React.FC = () => {
         {activeTab === 'TOOL' && (
             <>
                 {/* Trust Badges */}
-                <section className="mt-32 py-16 text-center border-y border-gray-100 dark:border-white/5">
+                <section className="mt-32 py-16 text-center border-y border-gray-100 dark:border-white/5 reveal-on-scroll animate-fade-in">
                     <p className="text-[10px] font-black text-gray-600 dark:text-gray-400 uppercase tracking-[0.5em] mb-12">Global Authority</p>
                     <div className="flex flex-wrap justify-center items-center gap-12 md:gap-24 opacity-60 dark:opacity-40 grayscale hover:grayscale-0 transition-all duration-700">
                         <div className="flex items-center gap-2 font-bold text-2xl tracking-tighter"><Users className="w-6 h-6" /> GrowRank</div>
@@ -296,14 +311,14 @@ const App: React.FC = () => {
                 </section>
 
                 {/* Testimonials */}
-                <section className="max-w-7xl mx-auto mt-32 px-6">
+                <section className="max-w-7xl mx-auto mt-32 px-6 reveal-on-scroll animate-slide-up">
                     <div className="grid md:grid-cols-3 gap-8">
                         {[
                             { name: "Sarah J.", role: "SEO Expert", text: "Difficulty algorithm is flawless.", avatar: "https://api.dicebear.com/7.x/avataaars/svg?seed=Sarah", profileUrl: "https://linkedin.com/in/sarah-j" },
                             { name: "Marcello R.", role: "Growth Lead", text: "Gemini-3 speed is unmatched.", avatar: "https://api.dicebear.com/7.x/avataaars/svg?seed=Marcello", profileUrl: "https://linkedin.com/in/marcello-r" },
                             { name: "Elena R.", role: "Consultant", text: "Data integrity you can trust.", avatar: "https://api.dicebear.com/7.x/avataaars/svg?seed=Elena", profileUrl: "https://linkedin.com/in/elena-r" }
                         ].map((t, i) => (
-                            <div key={i} className="bg-white dark:bg-white/[0.03] p-10 rounded-[3rem] border border-gray-200 dark:border-white/5 shadow-xl hover:scale-[1.03] hover:-translate-y-1 transition-all duration-500">
+                            <div key={i} className={`bg-white dark:bg-white/[0.03] p-10 rounded-[3rem] border border-gray-200 dark:border-white/5 shadow-xl hover:scale-[1.03] hover:-translate-y-1 transition-all duration-500 reveal-on-scroll animate-slide-up delay-${(i + 1) * 100}`}>
                                 <p className="text-gray-900 dark:text-gray-100 text-lg font-medium italic mb-10">"{t.text}"</p>
                                 <div className="flex items-center gap-4">
                                     <div className="relative group/avatar">
@@ -341,43 +356,59 @@ const App: React.FC = () => {
       <BuiltWith />
 
       {/* Floating Footer - Visible on all screens as a modern navigation pill */}
-      <div className="fixed bottom-8 left-1/2 -translate-x-1/2 w-[calc(100%-48px)] max-w-2xl bg-white/90 dark:bg-[#121212]/90 glass-effect border border-gray-200 dark:border-white/10 p-3 rounded-[2rem] flex items-center justify-between px-10 z-[100] shadow-2xl transition-all duration-500 hover:scale-[1.02]">
-        {[
-            { id: 'TOOL', icon: Search, label: 'Search' },
-            { id: 'FEATURES', icon: Zap, label: 'Features' },
-            { id: 'BLOG', icon: BookOpen, label: 'Blog' },
-            { id: 'API', icon: Code, label: 'API' },
-            { id: 'PRICING', icon: Star, label: 'Pricing' },
-            { id: 'SUPPORT', icon: MessageCircle, label: 'Support' }
-        ].map((item) => (
-            <button 
-                key={item.id}
-                onClick={() => handleTabChange(item.id as Tab)}
-                onMouseEnter={audio.playHover}
-                className={`flex flex-col items-center gap-1 transition-all duration-300 active:scale-75 group ${activeTab === item.id ? 'text-blue-600 dark:text-blue-400' : 'text-gray-500 dark:text-gray-400 hover:text-gray-900 dark:hover:text-white'}`}
-                aria-label={`Switch to ${item.label}`}
-            >
-                <item.icon className={`w-5 h-5 transition-transform group-hover:scale-110 ${activeTab === item.id ? 'stroke-[2.5px]' : 'stroke-[2px]'}`} />
-                <span className="text-[9px] font-black uppercase tracking-widest">{item.label}</span>
-            </button>
-        ))}
+      <div className="fixed bottom-8 left-1/2 -translate-x-1/2 w-[calc(100%-48px)] max-w-3xl bg-white/90 dark:bg-[#121212]/90 glass-effect border border-gray-200 dark:border-white/10 p-3 rounded-[2rem] flex items-center justify-between px-6 md:px-10 z-[100] shadow-2xl transition-all duration-500 hover:scale-[1.02]">
+        <div className="flex items-center gap-4 md:gap-8 overflow-x-auto no-scrollbar pr-4">
+          {[
+              { id: 'TOOL', icon: Search, label: 'Search' },
+              { id: 'FEATURES', icon: Zap, label: 'Features' },
+              { id: 'BLOG', icon: BookOpen, label: 'Blog' },
+              { id: 'API', icon: Code, label: 'API' },
+              { id: 'PRICING', icon: Star, label: 'Pricing' },
+              { id: 'SUPPORT', icon: MessageCircle, label: 'Support' }
+          ].map((item) => (
+              <button 
+                  key={item.id}
+                  onClick={() => handleTabChange(item.id as Tab)}
+                  onMouseEnter={audio.playHover}
+                  className={`flex flex-col items-center gap-1 transition-all duration-300 active:scale-75 group min-w-[48px] ${activeTab === item.id ? 'text-blue-600 dark:text-blue-400' : 'text-gray-500 dark:text-gray-400 hover:text-gray-900 dark:hover:text-white'}`}
+                  aria-label={`Switch to ${item.label}`}
+              >
+                  <item.icon className={`w-5 h-5 transition-transform group-hover:scale-110 ${activeTab === item.id ? 'stroke-[2.5px]' : 'stroke-[2px]'}`} />
+                  <span className="text-[9px] font-black uppercase tracking-widest">{item.label}</span>
+              </button>
+          ))}
+        </div>
 
-        <div className="w-px h-8 bg-gray-200 dark:bg-white/10 mx-2 hidden sm:block"></div>
+        <div className="w-px h-8 bg-gray-200 dark:bg-white/10 mx-2 hidden sm:block flex-shrink-0"></div>
 
-        <button 
-            onClick={toggleTheme}
-            onMouseEnter={audio.playHover}
-            className="flex flex-col items-center gap-1 text-gray-500 dark:text-gray-400 hover:text-gray-900 dark:hover:text-white active:rotate-180 transition-all duration-500 group"
-            aria-label="Toggle Theme"
-        >
-            <div className="group-hover:scale-110 transition-transform">
-              {theme === 'light' ? <Moon className="w-5 h-5" /> : <Sun className="w-5 h-5 text-amber-500" />}
-            </div>
-            <span className="text-[9px] font-black uppercase tracking-widest">{theme === 'light' ? 'Dark' : 'Light'}</span>
-        </button>
+        <div className="flex items-center gap-4 flex-shrink-0">
+          <button 
+              onClick={() => setIsFeedbackOpen(true)}
+              onMouseEnter={audio.playHover}
+              className="flex flex-col items-center gap-1 text-gray-500 dark:text-gray-400 hover:text-blue-600 dark:hover:text-blue-400 active:scale-90 transition-all duration-500 group"
+              aria-label="Feedback"
+          >
+              <div className="group-hover:scale-110 transition-transform">
+                <MessageCircle className="w-5 h-5" />
+              </div>
+              <span className="text-[9px] font-black uppercase tracking-widest">Feedback</span>
+          </button>
+
+          <button 
+              onClick={toggleTheme}
+              onMouseEnter={audio.playHover}
+              className="flex flex-col items-center gap-1 text-gray-500 dark:text-gray-400 hover:text-gray-900 dark:hover:text-white active:rotate-180 transition-all duration-500 group"
+              aria-label="Toggle Theme"
+          >
+              <div className="group-hover:scale-110 transition-transform">
+                {theme === 'light' ? <Moon className="w-5 h-5" /> : <Sun className="w-5 h-5 text-amber-500" />}
+              </div>
+              <span className="text-[9px] font-black uppercase tracking-widest">{theme === 'light' ? 'Dark' : 'Light'}</span>
+          </button>
+        </div>
       </div>
 
-      <footer className="bg-white dark:bg-black border-t border-gray-200 dark:border-white/10 py-24 px-6 transition-all duration-500">
+      <footer className="bg-white dark:bg-black border-t border-gray-200 dark:border-white/10 py-24 px-6 transition-all duration-500 reveal-on-scroll animate-fade-in">
         <div className="max-w-7xl mx-auto grid md:grid-cols-4 gap-16 text-center">
             {/* Branding Column */}
             <div className="flex flex-col items-center md:items-start space-y-8">

@@ -5,7 +5,7 @@ export const AboutUs: React.FC = () => {
   return (
     <div className="max-w-7xl mx-auto space-y-32 pb-32 overflow-hidden">
       {/* Hero Section */}
-      <section className="text-center space-y-8 pt-12 animate-in fade-in slide-in-from-bottom-8 duration-1000">
+      <section className="text-center space-y-8 pt-12 reveal-on-scroll animate-fade-in">
         <div className="inline-flex items-center gap-2 px-4 py-2 bg-blue-50 dark:bg-blue-500/10 text-blue-700 dark:text-blue-400 rounded-full text-[10px] font-black tracking-[0.2em] uppercase border border-blue-100 dark:border-blue-500/20">
           <Rocket className="w-3.5 h-3.5" /> Our Mission
         </div>
@@ -20,7 +20,7 @@ export const AboutUs: React.FC = () => {
 
       {/* The Vision Section */}
       <section className="grid md:grid-cols-2 gap-16 items-center px-6">
-        <div className="space-y-8 animate-in fade-in slide-in-from-left-8 duration-1000 delay-200">
+        <div className="space-y-8 reveal-on-scroll animate-slide-left">
           <div className="space-y-4">
             <h2 className="text-4xl font-black text-gray-900 dark:text-white tracking-tight">The Vision for Scale</h2>
             <div className="h-1.5 w-20 bg-blue-600 rounded-full"></div>
@@ -49,7 +49,7 @@ export const AboutUs: React.FC = () => {
             </div>
           </div>
         </div>
-        <div className="relative group animate-in fade-in slide-in-from-right-8 duration-1000 delay-300">
+        <div className="relative group reveal-on-scroll animate-slide-up delay-300">
            <div className="absolute inset-0 bg-blue-500/10 blur-[100px] rounded-full group-hover:bg-blue-500/20 transition-all duration-700"></div>
            <div className="relative bg-gray-900 dark:bg-black p-2 rounded-[3rem] border border-white/10 shadow-2xl">
               <div className="bg-[#121212] rounded-[2.8rem] overflow-hidden p-8 aspect-square flex flex-col justify-center">
@@ -73,7 +73,7 @@ export const AboutUs: React.FC = () => {
       </section>
 
       {/* Global Presence Map */}
-      <section className="relative py-32 px-6 bg-gray-900 dark:bg-black rounded-[4rem] border border-white/5 overflow-hidden animate-in fade-in duration-1000">
+      <section className="relative py-32 px-6 bg-gray-900 dark:bg-black rounded-[4rem] border border-white/5 overflow-hidden reveal-on-scroll animate-fade-in">
         <div className="absolute inset-0 opacity-20">
           <div className="absolute top-0 left-0 w-full h-full bg-[radial-gradient(#3b82f6_1px,transparent_1px)] [background-size:40px_40px]"></div>
         </div>
@@ -138,7 +138,7 @@ export const AboutUs: React.FC = () => {
       </section>
 
       {/* Core Values Section */}
-      <section className="px-6 space-y-16">
+      <section className="px-6 space-y-16 reveal-on-scroll animate-slide-up">
         <div className="text-center space-y-4">
           <h2 className="text-4xl font-black text-gray-900 dark:text-white tracking-tight">Built on Principles</h2>
           <p className="text-gray-500 font-medium">The values that drive our engineering and culture.</p>
@@ -164,7 +164,7 @@ export const AboutUs: React.FC = () => {
               color: "amber"
             }
           ].map((v, i) => (
-            <div key={i} className="group p-12 bg-white dark:bg-white/[0.03] border border-gray-100 dark:border-white/5 rounded-[3.5rem] shadow-xl hover:scale-[1.05] hover:bg-white/[0.06] transition-all duration-500 animate-in fade-in slide-in-from-bottom-8" style={{ animationDelay: `${i * 0.1}s` }}>
+            <div key={i} className={`group p-12 bg-white dark:bg-white/[0.03] border border-gray-100 dark:border-white/5 rounded-[3.5rem] shadow-xl hover:scale-[1.05] hover:bg-white/[0.06] transition-all duration-500 reveal-on-scroll animate-slide-up delay-${(i + 1) * 100}`}>
               <div className="mb-8 p-5 bg-gray-50 dark:bg-white/5 rounded-3xl w-fit group-hover:scale-110 transition-transform">
                 {v.icon}
               </div>
@@ -176,7 +176,7 @@ export const AboutUs: React.FC = () => {
       </section>
 
       {/* Team/Founders Section */}
-      <section className="px-6 space-y-16">
+      <section className="px-6 space-y-16 reveal-on-scroll animate-slide-up">
         <div className="text-center space-y-4">
           <h2 className="text-4xl font-black text-gray-900 dark:text-white tracking-tight">The Minds Behind Pro</h2>
           <p className="text-gray-500 font-medium">A diverse collective of data scientists and SEO veterans.</p>
@@ -187,7 +187,7 @@ export const AboutUs: React.FC = () => {
             { name: "Elena Rossi", role: "Co-Founder & CEO", bio: "15+ years in strategic growth and digital asset management.", avatar: "https://api.dicebear.com/7.x/avataaars/svg?seed=Elena" },
             { name: "Marcus Thorne", role: "Head of Product", bio: "Specializes in high-fidelity data visualization and UX design.", avatar: "https://api.dicebear.com/7.x/avataaars/svg?seed=Marcus" }
           ].map((member, i) => (
-            <div key={i} className="group text-center space-y-6 bg-white dark:bg-white/[0.02] p-10 rounded-[3.5rem] border border-gray-100 dark:border-white/5 transition-all duration-500 hover:shadow-2xl">
+            <div key={i} className={`group text-center space-y-6 bg-white dark:bg-white/[0.02] p-10 rounded-[3.5rem] border border-gray-100 dark:border-white/5 transition-all duration-500 hover:shadow-2xl reveal-on-scroll animate-slide-up delay-${(i + 1) * 100}`}>
               <div className="relative inline-block">
                 <div className="absolute inset-0 bg-blue-600/20 blur-2xl rounded-full scale-0 group-hover:scale-100 transition-transform duration-500"></div>
                 <img src={member.avatar} alt={member.name} className="relative w-32 h-32 rounded-[2.5rem] bg-gray-100 dark:bg-white/5 mx-auto border-4 border-white dark:border-white/10 shadow-lg group-hover:scale-110 transition-transform duration-500" />
@@ -207,7 +207,7 @@ export const AboutUs: React.FC = () => {
       </section>
 
       {/* CTA Section */}
-      <section className="px-6">
+      <section className="px-6 reveal-on-scroll animate-scale-up">
         <div className="bg-gray-900 dark:bg-black rounded-[4rem] p-16 md:p-24 text-center space-y-10 border border-white/5 relative overflow-hidden group">
           <div className="absolute top-0 right-0 p-24 opacity-5 group-hover:opacity-10 transition-opacity duration-700">
             <Rocket className="w-96 h-96 text-blue-500" />

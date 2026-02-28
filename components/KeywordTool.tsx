@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { Search, TrendingUp, BarChart3, DollarSign, Download, Loader2, Copy, Check, FileText, Info, Calculator, ShieldCheck, Zap, Users, Star, Bookmark, History, Trash2, Play } from 'lucide-react';
+import { Search, TrendingUp, BarChart3, DollarSign, Download, Loader2, Copy, Check, FileText, Info, Calculator, ShieldCheck, Zap, Users, Star, Bookmark, History, Trash2, Play, ArrowUpDown } from 'lucide-react';
 import { getKeywordSuggestions } from '../services/geminiService';
 import { KeywordSuggestion } from '../types';
 import { audio } from '../utils/audioUtils';
@@ -66,6 +66,7 @@ export const KeywordTool: React.FC = () => {
   const [savedSearches, setSavedSearches] = useState<SavedSearch[]>([]);
   const [justSaved, setJustSaved] = useState(false);
   const [isPromoOpen, setIsPromoOpen] = useState(false);
+  const [sortOption, setSortOption] = useState<'default' | 'volume_desc' | 'volume_asc' | 'difficulty_desc' | 'difficulty_asc' | 'cpc_desc' | 'cpc_asc'>('default');
   const abortControllerRef = React.useRef<AbortController | null>(null);
 
   // Load saved searches from localStorage
@@ -185,7 +186,7 @@ export const KeywordTool: React.FC = () => {
 
   const exportToCSV = () => {
     const headers = ['Keyword', 'Search Volume', 'Difficulty', 'CPC'];
-    const rows = results.map(r => [r.keyword, r.volume, r.difficulty, r.cpc].join(','));
+    const rows = sortedResults.map(r => [r.keyword, r.volume, r.difficulty, r.cpc].join(','));
     const csvContent = [headers.join(','), ...rows].join('\n');
     const blob = new Blob([csvContent], { type: 'text/csv;charset=utf-8;' });
     const url = URL.createObjectURL(blob);
@@ -195,12 +196,52 @@ export const KeywordTool: React.FC = () => {
     link.click();
   };
 
+  const parseVolume = (vol: string) => {
+    const num = parseFloat(vol.replace(/,/g, '').replace(/[Kk]/g, '000').replace(/[Mm]/g, '000000'));
+    return isNaN(num) ? 0 : num;
+  };
+
+  const parseDifficulty = (diff: string) => {
+    if (diff === 'Low') return 1;
+    if (diff === 'Medium') return 2;
+    if (diff === 'High') return 3;
+    return 0;
+  };
+
+  const parseCpc = (cpc: string) => {
+    const num = parseFloat(cpc.replace(/[^0-9.-]+/g,""));
+    return isNaN(num) ? 0 : num;
+  };
+
+  const sortedResults = [...results].sort((a, b) => {
+    switch (sortOption) {
+      case 'volume_desc': return parseVolume(b.volume) - parseVolume(a.volume);
+      case 'volume_asc': return parseVolume(a.volume) - parseVolume(b.volume);
+      case 'difficulty_desc': return parseDifficulty(b.difficulty) - parseDifficulty(a.difficulty);
+      case 'difficulty_asc': return parseDifficulty(a.difficulty) - parseDifficulty(b.difficulty);
+      case 'cpc_desc': return parseCpc(b.cpc) - parseCpc(a.cpc);
+      case 'cpc_asc': return parseCpc(a.cpc) - parseCpc(b.cpc);
+      default: return 0;
+    }
+  });
+
+  const getVolumeHighlight = (vol: string) => {
+    const num = parseVolume(vol);
+    if (num > 10000) return 'text-emerald-600 dark:text-emerald-400 bg-emerald-50 dark:bg-emerald-500/10 px-2 py-1 rounded-lg';
+    return '';
+  };
+
+  const getDifficultyHighlight = (diff: string) => {
+    if (diff === 'Low') return 'ring-2 ring-emerald-500/50 shadow-[0_0_15px_rgba(16,185,129,0.2)]';
+    return '';
+  };
+
   return (
     <div className="max-w-6xl mx-auto space-y-12">
       <PromoVideoModal isOpen={isPromoOpen} onClose={() => setIsPromoOpen(false)} />
       
       {/* Search Header */}
-      <div className="bg-white dark:bg-white/[0.03] p-6 sm:p-8 md:p-20 rounded-[2rem] md:rounded-[4rem] shadow-2xl border border-blue-50/50 dark:border-white/5 text-center space-y-8 relative overflow-hidden transition-all duration-500">
+      <div className="bg-white dark:bg-white/[0.03] p-6 sm:p-8 md:p-20 rounded-[2rem] md:rounded-[4rem] shadow-2xl border border-blue-50/50 dark:border-white/5 text-center space-y-8 relative overflow-hidden transition-all duration-500 reveal-on-scroll animate-fade-in">
         <div className="absolute -top-12 -right-12 p-8 opacity-5 dark:opacity-10 hidden md:block">
             <Calculator className="w-64 h-64 text-blue-900 dark:text-blue-400" />
         </div>
@@ -217,7 +258,7 @@ export const KeywordTool: React.FC = () => {
           <p className="text-gray-600 dark:text-gray-300 text-lg md:text-xl max-w-2xl mx-auto leading-relaxed font-medium">
             Analyze keyword authority, velocity, and commercial intent with precision.
           </p>
-          <div className="pt-4 flex flex-col sm:flex-row justify-center items-center gap-4">
+          <div className="pt-4 flex flex-col sm:flex-row justify-center items-center gap-4 reveal-on-scroll animate-scale-up">
             <button 
               onMouseEnter={audio.playHover}
               className="w-full sm:w-auto bg-blue-600 hover:bg-blue-700 text-white px-8 py-4 rounded-3xl font-black transition-all shadow-xl shadow-blue-500/20 uppercase tracking-widest text-sm"
@@ -269,7 +310,7 @@ export const KeywordTool: React.FC = () => {
       </div>
 
       {/* Social Proof */}
-      <div className="py-12 text-center space-y-8 animate-in fade-in slide-in-from-bottom-4 duration-700">
+      <div className="py-12 text-center space-y-8 reveal-on-scroll animate-slide-up">
         <p className="text-sm font-black text-gray-400 dark:text-gray-500 uppercase tracking-widest">Trusted by 500+ SEO Experts</p>
         <div className="flex flex-wrap justify-center items-center gap-12 opacity-50 grayscale hover:grayscale-0 transition-all duration-500">
           <div className="flex items-center gap-2 font-black text-2xl text-gray-900 dark:text-white"><div className="w-8 h-8 bg-blue-600 rounded-lg"></div> TechFlow</div>
@@ -281,7 +322,7 @@ export const KeywordTool: React.FC = () => {
 
       {/* History Section */}
       {savedSearches.length > 0 && !loading && (
-        <div className="space-y-6 animate-in fade-in slide-in-from-top-4 duration-500">
+        <div className="space-y-6 reveal-on-scroll animate-slide-up">
            <div className="flex items-center justify-between px-6">
               <h4 className="text-[10px] font-black text-gray-500 dark:text-gray-400 uppercase tracking-[0.4em] flex items-center gap-2">
                 <History className="w-3.5 h-3.5" /> Recent Discoveries
@@ -375,13 +416,31 @@ export const KeywordTool: React.FC = () => {
                 Niche Results: {keyword}
               </h3>
             </div>
-            <button 
-              onClick={exportToCSV}
-              className="flex items-center gap-3 px-8 py-5 bg-gray-900 dark:bg-white text-white dark:text-black rounded-3xl font-black text-xs uppercase tracking-widest hover:bg-black hover:scale-105 active:scale-95 transition-all shadow-xl"
-            >
-              <Download className="w-5 h-5" />
-              Export CSV
-            </button>
+            <div className="flex items-center gap-4">
+              <div className="relative">
+                <select 
+                  value={sortOption}
+                  onChange={(e) => setSortOption(e.target.value as any)}
+                  className="appearance-none bg-white dark:bg-white/5 border border-gray-200 dark:border-white/10 text-gray-700 dark:text-gray-300 py-3 pl-4 pr-10 rounded-2xl font-bold text-sm outline-none focus:ring-2 focus:ring-blue-500/50 cursor-pointer shadow-sm"
+                >
+                  <option value="default">Default Sort</option>
+                  <option value="volume_desc">Volume (High to Low)</option>
+                  <option value="volume_asc">Volume (Low to High)</option>
+                  <option value="difficulty_asc">Difficulty (Low to High)</option>
+                  <option value="difficulty_desc">Difficulty (High to Low)</option>
+                  <option value="cpc_desc">CPC (High to Low)</option>
+                  <option value="cpc_asc">CPC (Low to High)</option>
+                </select>
+                <ArrowUpDown className="absolute right-4 top-1/2 -translate-y-1/2 w-4 h-4 text-gray-400 pointer-events-none" />
+              </div>
+              <button 
+                onClick={exportToCSV}
+                className="flex items-center gap-3 px-6 py-3 bg-gray-900 dark:bg-white text-white dark:text-black rounded-2xl font-black text-xs uppercase tracking-widest hover:bg-black hover:scale-105 active:scale-95 transition-all shadow-xl"
+              >
+                <Download className="w-4 h-4" />
+                Export
+              </button>
+            </div>
           </div>
 
           <div className="bg-white dark:bg-white/[0.03] rounded-[2rem] md:rounded-[3.5rem] shadow-2xl border border-gray-100 dark:border-white/5 overflow-hidden transition-all duration-500">
@@ -396,7 +455,7 @@ export const KeywordTool: React.FC = () => {
                   </tr>
                 </thead>
                 <tbody className="divide-y divide-gray-100 dark:divide-white/5">
-                  {results.map((item, idx) => (
+                  {sortedResults.map((item, idx) => (
                     <tr key={idx} className="hover:bg-blue-50/30 dark:hover:bg-blue-500/5 transition-all group">
                       <td className="px-6 md:px-12 py-6 md:py-8">
                         <div className="flex items-center gap-4 md:gap-6">
@@ -406,7 +465,7 @@ export const KeywordTool: React.FC = () => {
                               delay={idx * 400} 
                               onComplete={() => {
                                 if (idx === results.length - 1) {
-                                  typingAudio.playCompleteChime();
+                                  satisfyingAudio.playSuccessChime();
                                 }
                               }}
                             />
@@ -420,7 +479,7 @@ export const KeywordTool: React.FC = () => {
                         </div>
                       </td>
                       <td className="px-6 md:px-12 py-6 md:py-8">
-                        <div className="flex items-center gap-2 md:gap-3 font-black text-gray-900 dark:text-white text-base md:text-lg">
+                        <div className={`flex items-center gap-2 md:gap-3 font-black text-gray-900 dark:text-white text-base md:text-lg w-fit ${getVolumeHighlight(item.volume)}`}>
                           <BarChart3 className="w-4 h-4 md:w-5 md:h-5 text-gray-300 dark:text-gray-600" />
                           <span>{item.volume}</span>
                         </div>
@@ -431,7 +490,7 @@ export const KeywordTool: React.FC = () => {
                           onMouseEnter={() => setHoveredDifficulty(idx)}
                           onMouseLeave={() => setHoveredDifficulty(null)}
                         >
-                          <span className={`px-5 py-2 rounded-2xl text-[10px] font-black border uppercase tracking-[0.1em] ${getDifficultyColor(item.difficulty)} transition-all hover:scale-110`}>
+                          <span className={`px-5 py-2 rounded-2xl text-[10px] font-black border uppercase tracking-[0.1em] ${getDifficultyColor(item.difficulty)} ${getDifficultyHighlight(item.difficulty)} transition-all hover:scale-110 block`}>
                             {item.difficulty}
                           </span>
                           

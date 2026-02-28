@@ -40,8 +40,8 @@ export const Support: React.FC<SupportProps> = ({ onOpenContact }) => {
   };
 
   return (
-    <div className="max-w-5xl mx-auto space-y-24 animate-in fade-in slide-in-from-bottom-6 duration-700 pb-20">
-      <div className="text-center space-y-6">
+    <div className="max-w-5xl mx-auto space-y-24 pb-20">
+      <div className="text-center space-y-6 reveal-on-scroll animate-fade-in">
         <div className="bg-blue-50 dark:bg-blue-500/10 text-blue-600 dark:text-blue-400 px-4 py-1.5 rounded-full text-[10px] font-black uppercase tracking-widest w-fit mx-auto border border-blue-100 dark:border-blue-500/20 mb-4">
           Priority Support Gateway
         </div>
@@ -55,7 +55,7 @@ export const Support: React.FC<SupportProps> = ({ onOpenContact }) => {
           { icon: <BookOpen className="w-6 h-6"/>, title: "API Docs", text: "Integrate intelligence into your apps.", color: "purple" },
           { icon: <Zap className="w-6 h-6"/>, title: "Niche Strategy", text: "Enterprise-only consulting sessions.", color: "amber" }
         ].map((item, i) => (
-          <button key={i} className="p-10 bg-white dark:bg-white/[0.03] border border-gray-100 dark:border-white/5 rounded-[3rem] shadow-xl shadow-gray-200/50 dark:shadow-none hover:-translate-y-2 transition-all group text-left space-y-6">
+          <button key={i} className={`p-10 bg-white dark:bg-white/[0.03] border border-gray-100 dark:border-white/5 rounded-[3rem] shadow-xl shadow-gray-200/50 dark:shadow-none hover:-translate-y-2 transition-all group text-left space-y-6 reveal-on-scroll animate-slide-up delay-${(i + 1) * 100}`}>
             <div className={`p-4 bg-${item.color}-50 dark:bg-${item.color}-500/10 text-${item.color}-600 dark:text-${item.color}-400 rounded-2xl w-fit group-hover:bg-${item.color}-600 group-hover:text-white transition-colors`}>
               {item.icon}
             </div>
@@ -68,7 +68,7 @@ export const Support: React.FC<SupportProps> = ({ onOpenContact }) => {
       </div>
 
       <div className="grid lg:grid-cols-2 gap-16 items-start">
-        <div className="space-y-10">
+        <div className="space-y-10 reveal-on-scroll animate-slide-left">
           <div className="space-y-2">
               <h3 className="text-3xl font-black text-gray-900 dark:text-white flex items-center gap-3">
                 <HelpCircle className="w-8 h-8 text-blue-600 dark:text-blue-400" />
@@ -96,7 +96,7 @@ export const Support: React.FC<SupportProps> = ({ onOpenContact }) => {
           </div>
         </div>
 
-        <div className="bg-gray-900 dark:bg-black rounded-[3.5rem] p-10 md:p-14 text-white relative overflow-hidden shadow-2xl border border-white/5">
+        <div className="bg-gray-900 dark:bg-black rounded-[3.5rem] p-10 md:p-14 text-white relative overflow-hidden shadow-2xl border border-white/5 reveal-on-scroll animate-slide-up">
             <div className="absolute top-0 right-0 p-12 opacity-5 pointer-events-none">
               <Mail className="w-48 h-48" />
             </div>

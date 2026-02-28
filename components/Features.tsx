@@ -5,7 +5,7 @@ export const Features: React.FC = () => {
   return (
     <div className="max-w-7xl mx-auto space-y-32 pb-32 overflow-hidden">
       {/* Hero Section */}
-      <section className="text-center space-y-8 pt-12 animate-in fade-in slide-in-from-bottom-8 duration-1000">
+      <section className="text-center space-y-8 pt-12 reveal-on-scroll animate-fade-in">
         <div className="inline-flex items-center gap-3 px-4 py-2 bg-blue-50 dark:bg-blue-500/10 text-blue-700 dark:text-blue-400 rounded-full text-[10px] font-black tracking-[0.2em] uppercase border border-blue-100 dark:border-blue-500/20">
           <Zap className="w-3.5 h-3.5 fill-current" /> Advanced Capabilities
         </div>
@@ -29,7 +29,7 @@ export const Features: React.FC = () => {
       </section>
 
       {/* Competitor Analysis Module */}
-      <section className="px-6">
+      <section className="px-6 reveal-on-scroll animate-slide-up">
         <div className="bg-white dark:bg-white/[0.02] border border-gray-200 dark:border-white/5 rounded-[4rem] p-12 md:p-20 shadow-2xl relative overflow-hidden group">
           <div className="absolute top-0 right-0 p-24 opacity-5 group-hover:opacity-10 transition-opacity duration-700">
             <BarChart3 className="w-96 h-96 text-blue-500" />
@@ -105,7 +105,7 @@ export const Features: React.FC = () => {
       </section>
 
       {/* Global Reach Section */}
-      <section className="px-6 space-y-16">
+      <section className="px-6 space-y-16 reveal-on-scroll animate-slide-up">
         <div className="text-center space-y-4">
           <h2 className="text-4xl font-black text-gray-900 dark:text-white tracking-tight">Global Edge Infrastructure</h2>
           <p className="text-gray-500 font-medium">Distributed compute across 200+ nodes for localized accuracy.</p>
@@ -153,7 +153,7 @@ export const Features: React.FC = () => {
                   icon: <Zap className="w-6 h-6 text-amber-500" />
                 }
               ].map((feature, i) => (
-                <div key={i} className="flex gap-6 p-6 bg-white dark:bg-white/[0.03] border border-gray-100 dark:border-white/5 rounded-3xl hover:scale-[1.02] transition-all">
+                <div key={i} className={`flex gap-6 p-6 bg-white dark:bg-white/[0.03] border border-gray-100 dark:border-white/5 rounded-3xl hover:scale-[1.02] transition-all reveal-on-scroll animate-slide-left delay-${(i + 1) * 100}`}>
                   <div className="flex-shrink-0 w-12 h-12 bg-gray-50 dark:bg-white/5 rounded-2xl flex items-center justify-center">
                     {feature.icon}
                   </div>
@@ -169,7 +169,7 @@ export const Features: React.FC = () => {
       </section>
 
       {/* CTA Section */}
-      <section className="px-6">
+      <section className="px-6 reveal-on-scroll animate-scale-up">
         <div className="bg-blue-600 rounded-[4rem] p-16 md:p-24 text-center space-y-10 relative overflow-hidden group">
           <div className="absolute top-0 right-0 p-24 opacity-10 group-hover:opacity-20 transition-opacity duration-700">
             <Rocket className="w-96 h-96 text-white" />

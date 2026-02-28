@@ -35,7 +35,7 @@ export const Blog: React.FC = () => {
   return (
     <div className="max-w-7xl mx-auto space-y-24 pb-32 overflow-hidden">
       {/* Hero Section */}
-      <section className="text-center space-y-8 pt-12 animate-in fade-in slide-in-from-bottom-8 duration-1000">
+      <section className="text-center space-y-8 pt-12 reveal-on-scroll animate-fade-in">
         <div className="inline-flex items-center gap-2 px-4 py-2 bg-blue-50 dark:bg-blue-500/10 text-blue-700 dark:text-blue-400 rounded-full text-[10px] font-black tracking-[0.2em] uppercase border border-blue-100 dark:border-blue-500/20">
           KeywordPro Insights
         </div>
@@ -52,8 +52,7 @@ export const Blog: React.FC = () => {
         {posts.map((post, idx) => (
           <article 
             key={idx} 
-            className="group bg-white dark:bg-white/[0.02] border border-gray-100 dark:border-white/5 rounded-[3rem] overflow-hidden shadow-xl hover:shadow-2xl transition-all duration-500 hover:-translate-y-2 animate-in fade-in slide-in-from-bottom-12"
-            style={{ animationDelay: `${idx * 0.15}s` }}
+            className={`group bg-white dark:bg-white/[0.02] border border-gray-100 dark:border-white/5 rounded-[3rem] overflow-hidden shadow-xl hover:shadow-2xl transition-all duration-500 hover:-translate-y-2 reveal-on-scroll animate-slide-up delay-${(idx + 1) * 100}`}
           >
             <div className="relative h-64 overflow-hidden">
               <img 
@@ -104,7 +103,7 @@ export const Blog: React.FC = () => {
       </div>
 
       {/* Newsletter Section */}
-      <section className="px-6">
+      <section className="px-6 reveal-on-scroll animate-slide-up">
         <div className="bg-gray-900 dark:bg-black rounded-[4rem] p-16 md:p-24 text-center space-y-10 border border-white/5 relative overflow-hidden group">
           <div className="absolute inset-0 opacity-10">
             <div className="absolute top-0 left-0 w-full h-full bg-[radial-gradient(#3b82f6_1px,transparent_1px)] [background-size:40px_40px]"></div>

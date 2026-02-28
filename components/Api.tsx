@@ -28,7 +28,7 @@ console.log(data.difficulty); // Output: 42`;
   return (
     <div className="max-w-5xl mx-auto space-y-24 pb-32 overflow-hidden">
       {/* Hero Section */}
-      <section className="text-center space-y-8 pt-12 animate-in fade-in slide-in-from-bottom-8 duration-1000">
+      <section className="text-center space-y-8 pt-12 reveal-on-scroll animate-fade-in">
         <div className="inline-flex items-center gap-2 px-4 py-2 bg-blue-50 dark:bg-blue-500/10 text-blue-700 dark:text-blue-400 rounded-full text-[10px] font-black tracking-[0.2em] uppercase border border-blue-100 dark:border-blue-500/20">
           <Code className="w-3.5 h-3.5" /> Developer Hub
         </div>
@@ -42,7 +42,7 @@ console.log(data.difficulty); // Output: 42`;
       </section>
 
       {/* Code Snippet Section */}
-      <section className="px-6">
+      <section className="px-6 reveal-on-scroll animate-slide-up">
         <div className="bg-gray-900 dark:bg-black rounded-[3.5rem] p-10 md:p-14 border border-white/10 shadow-2xl relative overflow-hidden group">
           <div className="absolute top-0 right-0 p-12 opacity-5 pointer-events-none">
             <Terminal className="w-64 h-64 text-blue-500" />
@@ -90,7 +90,7 @@ console.log(data.difficulty); // Output: 42`;
             icon: <Shield className="w-8 h-8 text-emerald-500" />
           }
         ].map((item, i) => (
-          <div key={i} className="bg-white dark:bg-white/[0.02] p-10 rounded-[3rem] border border-gray-100 dark:border-white/5 shadow-xl hover:scale-[1.05] transition-all duration-500">
+          <div key={i} className={`bg-white dark:bg-white/[0.02] p-10 rounded-[3rem] border border-gray-100 dark:border-white/5 shadow-xl hover:scale-[1.05] transition-all duration-500 reveal-on-scroll animate-slide-up delay-${(i + 1) * 100}`}>
             <div className="mb-6 p-4 bg-gray-50 dark:bg-white/5 rounded-2xl w-fit">
               {item.icon}
             </div>

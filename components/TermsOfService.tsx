@@ -4,8 +4,8 @@ import { FileText, Scale, Gavel, AlertCircle } from 'lucide-react';
 
 export const TermsOfService: React.FC = () => {
   return (
-    <div className="max-w-4xl mx-auto space-y-12 animate-in fade-in slide-in-from-bottom-6 duration-700 pb-20">
-      <div className="flex items-center gap-6 mb-16">
+    <div className="max-w-4xl mx-auto space-y-12 pb-20">
+      <div className="flex items-center gap-6 mb-16 reveal-on-scroll animate-fade-in">
         <div className="bg-gray-900 dark:bg-white p-5 rounded-3xl shadow-xl">
           <FileText className="w-8 h-8 text-white dark:text-black" />
         </div>
@@ -15,7 +15,7 @@ export const TermsOfService: React.FC = () => {
         </div>
       </div>
 
-      <div className="bg-amber-50 dark:bg-amber-500/10 border border-amber-100 dark:border-amber-500/20 p-10 rounded-[3rem] flex items-start gap-8 mb-20">
+      <div className="bg-amber-50 dark:bg-amber-500/10 border border-amber-100 dark:border-amber-500/20 p-10 rounded-[3rem] flex items-start gap-8 mb-20 reveal-on-scroll animate-slide-up">
         <div className="bg-white dark:bg-black p-4 rounded-2xl shadow-sm"><AlertCircle className="text-amber-600 dark:text-amber-400 w-6 h-6"/></div>
         <div className="space-y-3">
           <h4 className="font-black text-amber-900 dark:text-amber-200 uppercase tracking-widest text-[10px]">Commercial Disclosure</h4>
@@ -25,7 +25,7 @@ export const TermsOfService: React.FC = () => {
         </div>
       </div>
 
-      <div className="prose prose-blue dark:prose-invert max-w-none text-gray-600 dark:text-gray-400 font-medium space-y-12">
+      <div className="prose prose-blue dark:prose-invert max-w-none text-gray-600 dark:text-gray-400 font-medium space-y-12 reveal-on-scroll animate-slide-up">
         <section className="space-y-6">
           <div className="flex items-center gap-4">
             <Scale className="w-7 h-7 text-blue-600 dark:text-blue-400" />

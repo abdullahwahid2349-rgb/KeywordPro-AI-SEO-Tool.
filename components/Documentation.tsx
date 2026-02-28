@@ -118,7 +118,7 @@ export const Documentation: React.FC = () => {
     <div className="max-w-7xl mx-auto px-6 py-12">
       <div className="flex flex-col lg:flex-row gap-16">
         {/* Sidebar */}
-        <aside className="lg:w-64 flex-shrink-0 space-y-8">
+        <aside className="lg:w-64 flex-shrink-0 space-y-8 reveal-on-scroll animate-slide-left">
           <div className="space-y-4">
             <h3 className="text-[10px] font-black text-gray-500 uppercase tracking-[0.4em] px-4">Documentation</h3>
             <nav className="space-y-1">
@@ -149,7 +149,7 @@ export const Documentation: React.FC = () => {
         </aside>
 
         {/* Main Content */}
-        <main className="flex-1 max-w-3xl animate-in fade-in slide-in-from-right-8 duration-700">
+        <main className="flex-1 max-w-3xl reveal-on-scroll animate-fade-in">
           {sections.find(s => s.id === activeSection)?.content}
         </main>
       </div>

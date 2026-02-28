@@ -75,6 +75,62 @@
           font-size: 16px;
         }
       }
+
+      /* Scroll Reveal Animations */
+      .reveal-on-scroll {
+        opacity: 0;
+        visibility: hidden;
+        will-change: transform, opacity;
+      }
+      
+      .reveal-on-scroll.is-revealed {
+        visibility: visible;
+      }
+
+      /* Fade & Slide Up */
+      .animate-slide-up {
+        transform: translateY(40px);
+        transition: opacity 600ms cubic-bezier(0.4, 0, 0.2, 1), transform 600ms cubic-bezier(0.4, 0, 0.2, 1);
+      }
+      .animate-slide-up.is-revealed {
+        opacity: 1;
+        transform: translateY(0);
+      }
+
+      /* Fade & Slide Left */
+      .animate-slide-left {
+        transform: translateX(-40px);
+        transition: opacity 600ms cubic-bezier(0.4, 0, 0.2, 1), transform 600ms cubic-bezier(0.4, 0, 0.2, 1);
+      }
+      .animate-slide-left.is-revealed {
+        opacity: 1;
+        transform: translateX(0);
+      }
+
+      /* Fade In Only */
+      .animate-fade-in {
+        transition: opacity 600ms cubic-bezier(0.4, 0, 0.2, 1);
+      }
+      .animate-fade-in.is-revealed {
+        opacity: 1;
+      }
+
+      /* Scale Up */
+      .animate-scale-up {
+        transform: scale(0.9);
+        transition: opacity 500ms cubic-bezier(0.4, 0, 0.2, 1), transform 500ms cubic-bezier(0.4, 0, 0.2, 1);
+      }
+      .animate-scale-up.is-revealed {
+        opacity: 1;
+        transform: scale(1);
+      }
+
+      /* Stagger Delays */
+      .delay-100 { transition-delay: 100ms; }
+      .delay-200 { transition-delay: 200ms; }
+      .delay-300 { transition-delay: 300ms; }
+      .delay-400 { transition-delay: 400ms; }
+      .delay-500 { transition-delay: 500ms; }
     </style>
   <script type="importmap">
 {

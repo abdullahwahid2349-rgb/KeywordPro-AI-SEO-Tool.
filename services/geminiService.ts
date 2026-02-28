@@ -4,7 +4,7 @@ import { KeywordSuggestion, KeywordResponse } from "../types";
 
 export const getKeywordSuggestions = async (seedKeyword: string, signal?: AbortSignal): Promise<KeywordResponse> => {
   // Create a fresh instance for every call to ensure the latest API key is used
-  const ai = new GoogleGenAI({ apiKey: process.env.API_KEY as string });
+  const ai = new GoogleGenAI({ apiKey: process.env.GEMINI_API_KEY as string });
   
   try {
     const response = await ai.models.generateContent({
@@ -59,7 +59,7 @@ export const getKeywordSuggestions = async (seedKeyword: string, signal?: AbortS
 };
 
 export const editImageWithPrompt = async (base64DataUrl: string, mimeType: string, prompt: string): Promise<string | null> => {
-  const ai = new GoogleGenAI({ apiKey: process.env.API_KEY as string });
+  const ai = new GoogleGenAI({ apiKey: process.env.GEMINI_API_KEY as string });
   
   const base64Data = base64DataUrl.includes(',') ? base64DataUrl.split(',')[1] : base64DataUrl;
 
