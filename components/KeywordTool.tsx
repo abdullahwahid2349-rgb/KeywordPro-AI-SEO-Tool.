@@ -1,23 +1,72 @@
 import React, { useState, useEffect } from 'react';
-import { Search, TrendingUp, BarChart3, DollarSign, Download, Loader2, Copy, Check, FileText, Info, Calculator, ShieldCheck, Zap, Users, Star, Bookmark, History, Trash2 } from 'lucide-react';
+import { Search, TrendingUp, BarChart3, DollarSign, Download, Loader2, Copy, Check, FileText, Info, Calculator, ShieldCheck, Zap, Users, Star, Bookmark, History, Trash2, Play } from 'lucide-react';
 import { getKeywordSuggestions } from '../services/geminiService';
 import { KeywordSuggestion } from '../types';
+import { audio } from '../utils/audioUtils';
+import { satisfyingAudio } from '../utils/satisfyingAudioEngine';
+import { PromoVideoModal } from './PromoVideoModal';
 
 interface SavedSearch {
   id: string;
   keyword: string;
   timestamp: number;
   results: KeywordSuggestion[];
+  relatedTopics?: string[];
 }
+
+const TypewriterText: React.FC<{ text: string; delay?: number; onComplete?: () => void }> = ({ text, delay = 0, onComplete }) => {
+  const [displayedText, setDisplayedText] = useState('');
+  const [isTyping, setIsTyping] = useState(false);
+
+  useEffect(() => {
+    setDisplayedText('');
+    setIsTyping(false);
+    
+    let timeout: NodeJS.Timeout;
+    let charIndex = 0;
+
+    const startTyping = () => {
+      setIsTyping(true);
+      const typeChar = () => {
+        if (charIndex < text.length) {
+          setDisplayedText(text.substring(0, charIndex + 1));
+          satisfyingAudio.playAiType();
+          charIndex++;
+          // Random delay between 40ms and 90ms for a natural, human-like typing feel
+          const randomDelay = Math.floor(Math.random() * 50) + 40;
+          timeout = setTimeout(typeChar, randomDelay);
+        } else {
+          setIsTyping(false);
+          if (onComplete) onComplete();
+        }
+      };
+      typeChar();
+    };
+
+    timeout = setTimeout(startTyping, delay);
+
+    return () => clearTimeout(timeout);
+  }, [text, delay]);
+
+  return (
+    <span className="relative">
+      {displayedText}
+      {isTyping && <span className="animate-pulse border-r-2 border-blue-500 ml-1"></span>}
+    </span>
+  );
+};
 
 export const KeywordTool: React.FC = () => {
   const [keyword, setKeyword] = useState('');
   const [results, setResults] = useState<KeywordSuggestion[]>([]);
+  const [relatedTopics, setRelatedTopics] = useState<string[]>([]);
   const [loading, setLoading] = useState(false);
   const [copiedIndex, setCopiedIndex] = useState<number | null>(null);
   const [hoveredDifficulty, setHoveredDifficulty] = useState<number | null>(null);
   const [savedSearches, setSavedSearches] = useState<SavedSearch[]>([]);
   const [justSaved, setJustSaved] = useState(false);
+  const [isPromoOpen, setIsPromoOpen] = useState(false);
+  const abortControllerRef = React.useRef<AbortController | null>(null);
 
   // Load saved searches from localStorage
   useEffect(() => {
@@ -36,47 +85,86 @@ export const KeywordTool: React.FC = () => {
     localStorage.setItem('keywordpro_history', JSON.stringify(savedSearches));
   }, [savedSearches]);
 
-  const handleSearch = async (e: React.FormEvent) => {
-    e.preventDefault();
-    if (!keyword.trim()) return;
+  const handleSearch = async (e?: React.FormEvent, searchKeyword?: string) => {
+    if (e) e.preventDefault();
+    const query = searchKeyword || keyword;
+    if (!query.trim()) {
+      audio.playError();
+      return;
+    }
     
+    audio.playPrimary();
+    if (searchKeyword) setKeyword(searchKeyword);
+    
+    // Check cache first
+    const cachedSearch = savedSearches.find(s => s.keyword.toLowerCase() === query.toLowerCase());
+    if (cachedSearch) {
+      setResults(cachedSearch.results);
+      setRelatedTopics(cachedSearch.relatedTopics || []);
+      audio.playSuccess();
+      return;
+    }
+
+    // Cancel previous request if any
+    if (abortControllerRef.current) {
+      abortControllerRef.current.abort();
+    }
+    const abortController = new AbortController();
+    abortControllerRef.current = abortController;
+
     setLoading(true);
     setJustSaved(false);
     try {
-      const data = await getKeywordSuggestions(keyword);
-      setResults(data);
+      const data = await getKeywordSuggestions(query, abortController.signal);
+      
+      // If request was aborted, don't update state
+      if (abortController.signal.aborted) return;
+
+      setResults(data.results || []);
+      setRelatedTopics(data.relatedTopics || []);
       
       // Automatically save to history
-      if (data && data.length > 0) {
+      if (data.results && data.results.length > 0) {
+        audio.playSuccess();
         const newSave: SavedSearch = {
           id: Math.random().toString(36).substr(2, 9),
-          keyword: keyword,
+          keyword: query,
           timestamp: Date.now(),
-          results: data
+          results: data.results,
+          relatedTopics: data.relatedTopics || []
         };
         
         setSavedSearches(prev => {
           // Remove if already exists to move it to the top
-          const filtered = prev.filter(s => s.keyword.toLowerCase() !== keyword.toLowerCase());
+          const filtered = prev.filter(s => s.keyword.toLowerCase() !== query.toLowerCase());
           return [newSave, ...filtered].slice(0, 10);
         });
+      } else {
+        audio.playError();
       }
-    } catch (err) {
+    } catch (err: any) {
+      if (err.name === 'AbortError') return;
       console.error(err);
+      audio.playError();
     } finally {
-      setLoading(false);
+      if (!abortController.signal.aborted) {
+        setLoading(false);
+      }
     }
   };
 
   const loadAnalysis = (save: SavedSearch) => {
+    audio.playNav();
     setKeyword(save.keyword);
     setResults(save.results);
+    setRelatedTopics(save.relatedTopics || []);
     setJustSaved(true);
     window.scrollTo({ top: 0, behavior: 'smooth' });
   };
 
   const deleteSave = (e: React.MouseEvent, id: string) => {
     e.stopPropagation();
+    audio.playHover();
     setSavedSearches(prev => prev.filter(s => s.id !== id));
   };
 
@@ -109,9 +197,11 @@ export const KeywordTool: React.FC = () => {
 
   return (
     <div className="max-w-6xl mx-auto space-y-12">
+      <PromoVideoModal isOpen={isPromoOpen} onClose={() => setIsPromoOpen(false)} />
+      
       {/* Search Header */}
-      <div className="bg-white dark:bg-white/[0.03] p-8 md:p-20 rounded-[4rem] shadow-2xl border border-blue-50/50 dark:border-white/5 text-center space-y-8 relative overflow-hidden transition-all duration-500">
-        <div className="absolute -top-12 -right-12 p-8 opacity-5 dark:opacity-10">
+      <div className="bg-white dark:bg-white/[0.03] p-6 sm:p-8 md:p-20 rounded-[2rem] md:rounded-[4rem] shadow-2xl border border-blue-50/50 dark:border-white/5 text-center space-y-8 relative overflow-hidden transition-all duration-500">
+        <div className="absolute -top-12 -right-12 p-8 opacity-5 dark:opacity-10 hidden md:block">
             <Calculator className="w-64 h-64 text-blue-900 dark:text-blue-400" />
         </div>
         
@@ -120,16 +210,27 @@ export const KeywordTool: React.FC = () => {
             <Zap className="w-3.5 h-3.5 fill-current" />
             Gemini SEO Engine v3.0
           </div>
-          <h1 className="text-5xl md:text-6xl lg:text-7xl font-black text-gray-900 dark:text-white tracking-tight leading-tight">
-            Rank 10x Faster with <br/>
+          <h1 className="text-4xl sm:text-5xl md:text-6xl lg:text-7xl font-black text-gray-900 dark:text-white tracking-tight leading-tight">
+            Rank 10x Faster with <br className="hidden sm:block" />
             <span className="text-blue-600 dark:text-blue-400">AI-Driven Keyword Research</span>
           </h1>
-          <p className="text-gray-600 dark:text-gray-300 text-xl max-w-2xl mx-auto leading-relaxed font-medium">
+          <p className="text-gray-600 dark:text-gray-300 text-lg md:text-xl max-w-2xl mx-auto leading-relaxed font-medium">
             Analyze keyword authority, velocity, and commercial intent with precision.
           </p>
-          <div className="pt-4 flex justify-center gap-4">
-            <button className="bg-blue-600 hover:bg-blue-700 text-white px-8 py-4 rounded-3xl font-black transition-all shadow-xl shadow-blue-500/20 uppercase tracking-widest text-sm">
+          <div className="pt-4 flex flex-col sm:flex-row justify-center items-center gap-4">
+            <button 
+              onMouseEnter={audio.playHover}
+              className="w-full sm:w-auto bg-blue-600 hover:bg-blue-700 text-white px-8 py-4 rounded-3xl font-black transition-all shadow-xl shadow-blue-500/20 uppercase tracking-widest text-sm"
+            >
               Start Free Trial
+            </button>
+            <button 
+              onClick={() => { audio.playHover(); setIsPromoOpen(true); }}
+              onMouseEnter={audio.playHover}
+              className="w-full sm:w-auto bg-white dark:bg-white/5 hover:bg-gray-50 dark:hover:bg-white/10 text-gray-900 dark:text-white border border-gray-200 dark:border-white/10 px-8 py-4 rounded-3xl font-black transition-all uppercase tracking-widest text-sm flex items-center justify-center gap-2"
+            >
+              <Play className="w-4 h-4" />
+              Watch Promo
             </button>
           </div>
         </div>
@@ -141,14 +242,26 @@ export const KeywordTool: React.FC = () => {
               type="text"
               value={keyword}
               onChange={(e) => setKeyword(e.target.value)}
+              onFocus={() => satisfyingAudio.playFocusPop()}
+              onKeyDown={(e) => {
+                if (e.key === 'Enter') {
+                  satisfyingAudio.playEnter();
+                } else if (e.key === 'Backspace') {
+                  satisfyingAudio.playBackspace();
+                } else if (e.key.length === 1) {
+                  satisfyingAudio.playKeyPress();
+                }
+              }}
               placeholder="Enter seed keyword (e.g. 'saas marketing')"
-              className="w-full pl-16 pr-8 py-6 bg-gray-50 dark:bg-white/5 border border-gray-100 dark:border-white/10 rounded-3xl focus:ring-4 focus:ring-blue-500/10 focus:border-blue-500 outline-none transition-all text-xl font-bold dark:text-white"
+              className="w-full pl-16 pr-8 py-5 md:py-6 bg-gray-50 dark:bg-white/5 border border-gray-100 dark:border-white/10 rounded-3xl focus:ring-4 focus:ring-blue-500/30 focus:border-blue-500 shadow-sm focus:shadow-[0_0_20px_rgba(59,130,246,0.3)] outline-none transition-all duration-200 text-lg md:text-xl font-bold dark:text-white"
             />
           </div>
           <button
             type="submit"
             disabled={loading}
-            className="bg-gray-900 dark:bg-white hover:bg-black dark:hover:bg-gray-200 hover:scale-[1.05] active:scale-[0.95] text-white dark:text-black px-14 py-6 rounded-3xl font-black transition-all disabled:opacity-50 flex items-center justify-center gap-3 uppercase tracking-widest text-sm"
+            onMouseEnter={audio.playHover}
+            onClick={() => satisfyingAudio.playEnter()}
+            className="bg-gray-900 dark:bg-white hover:bg-black dark:hover:bg-gray-200 hover:scale-[1.05] active:scale-[0.95] text-white dark:text-black px-10 md:px-14 py-5 md:py-6 rounded-3xl font-black transition-all disabled:opacity-50 flex items-center justify-center gap-3 uppercase tracking-widest text-sm"
           >
             {loading ? <Loader2 className="w-6 h-6 animate-spin" /> : 'Analyze'}
           </button>
@@ -174,7 +287,8 @@ export const KeywordTool: React.FC = () => {
                 <History className="w-3.5 h-3.5" /> Recent Discoveries
               </h4>
               <button 
-                onClick={() => setSavedSearches([])}
+                onClick={() => { audio.playHover(); setSavedSearches([]); }}
+                onMouseEnter={audio.playHover}
                 className="text-[9px] font-black text-gray-500 hover:text-rose-600 transition-colors uppercase tracking-widest"
               >
                 Clear History
@@ -205,16 +319,49 @@ export const KeywordTool: React.FC = () => {
         </div>
       )}
 
-      {/* Loading Box */}
+      {/* Loading Skeleton */}
       {loading && (
-        <div className="bg-gray-900 dark:bg-white/[0.02] text-white p-10 rounded-[3rem] shadow-2xl flex flex-col md:flex-row items-center gap-10 border border-white/10 relative overflow-hidden animate-pulse">
-            <div className="bg-white/5 p-8 rounded-[2rem] border border-white/10 font-mono text-2xl md:text-3xl relative z-10">
-                KD = (BA + DA) × <span className="text-blue-500 dark:text-blue-400 font-black">log(C)</span>
+        <div className="space-y-8 animate-in fade-in duration-300">
+          <div className="flex flex-col md:flex-row items-center justify-between gap-6 px-4">
+            <div className="flex items-center gap-6">
+              <div className="w-8 h-8 bg-gray-200 dark:bg-white/10 rounded-lg animate-pulse"></div>
+              <div className="h-8 w-48 bg-gray-200 dark:bg-white/10 rounded-xl animate-pulse"></div>
             </div>
-            <div className="space-y-3 relative z-10">
-                <h4 className="font-black text-2xl tracking-tight">Processing Intelligence...</h4>
-                <p className="text-gray-300 dark:text-gray-400 text-sm font-medium">Aggregating signals for 99.8% precision metrics.</p>
+            <div className="h-14 w-40 bg-gray-200 dark:bg-white/10 rounded-3xl animate-pulse"></div>
+          </div>
+
+          <div className="bg-white dark:bg-white/[0.03] rounded-[2rem] md:rounded-[3.5rem] shadow-2xl border border-gray-100 dark:border-white/5 overflow-hidden">
+            <div className="overflow-x-auto">
+              <table className="w-full text-left min-w-[600px]">
+                <thead>
+                  <tr className="bg-gray-50/50 dark:bg-white/5 border-b border-gray-100 dark:border-white/5">
+                    <th className="px-6 md:px-12 py-6 md:py-8"><div className="h-3 w-24 bg-gray-200 dark:bg-white/10 rounded-full animate-pulse"></div></th>
+                    <th className="px-6 md:px-12 py-6 md:py-8"><div className="h-3 w-16 bg-gray-200 dark:bg-white/10 rounded-full animate-pulse"></div></th>
+                    <th className="px-6 md:px-12 py-6 md:py-8"><div className="h-3 w-20 bg-gray-200 dark:bg-white/10 rounded-full animate-pulse"></div></th>
+                    <th className="px-6 md:px-12 py-6 md:py-8"><div className="h-3 w-16 bg-gray-200 dark:bg-white/10 rounded-full animate-pulse"></div></th>
+                  </tr>
+                </thead>
+                <tbody className="divide-y divide-gray-100 dark:divide-white/5">
+                  {[...Array(5)].map((_, idx) => (
+                    <tr key={idx}>
+                      <td className="px-6 md:px-12 py-6 md:py-8">
+                        <div className="h-6 w-48 bg-gray-200 dark:bg-white/10 rounded-lg animate-pulse"></div>
+                      </td>
+                      <td className="px-6 md:px-12 py-6 md:py-8">
+                        <div className="h-5 w-16 bg-gray-200 dark:bg-white/10 rounded-lg animate-pulse"></div>
+                      </td>
+                      <td className="px-6 md:px-12 py-6 md:py-8">
+                        <div className="h-8 w-20 bg-gray-200 dark:bg-white/10 rounded-2xl animate-pulse"></div>
+                      </td>
+                      <td className="px-6 md:px-12 py-6 md:py-8">
+                        <div className="h-5 w-16 bg-gray-200 dark:bg-white/10 rounded-lg animate-pulse"></div>
+                      </td>
+                    </tr>
+                  ))}
+                </tbody>
+              </table>
             </div>
+          </div>
         </div>
       )}
 
@@ -237,38 +384,48 @@ export const KeywordTool: React.FC = () => {
             </button>
           </div>
 
-          <div className="bg-white dark:bg-white/[0.03] rounded-[3.5rem] shadow-2xl border border-gray-100 dark:border-white/5 overflow-hidden transition-all duration-500">
+          <div className="bg-white dark:bg-white/[0.03] rounded-[2rem] md:rounded-[3.5rem] shadow-2xl border border-gray-100 dark:border-white/5 overflow-hidden transition-all duration-500">
             <div className="overflow-x-auto">
-              <table className="w-full text-left">
+              <table className="w-full text-left min-w-[600px]">
                 <thead>
                   <tr className="bg-gray-50/50 dark:bg-white/5 border-b border-gray-100 dark:border-white/5">
-                    <th className="px-12 py-8 text-[10px] font-black text-gray-600 dark:text-gray-300 uppercase tracking-[0.4em]">Keyword Prospect</th>
-                    <th className="px-12 py-8 text-[10px] font-black text-gray-600 dark:text-gray-300 uppercase tracking-[0.4em]">Volume</th>
-                    <th className="px-12 py-8 text-[10px] font-black text-gray-600 dark:text-gray-300 uppercase tracking-[0.4em]">Difficulty</th>
-                    <th className="px-12 py-8 text-[10px] font-black text-gray-600 dark:text-gray-300 uppercase tracking-[0.4em]">Avg CPC</th>
+                    <th className="px-6 md:px-12 py-6 md:py-8 text-[10px] font-black text-gray-600 dark:text-gray-300 uppercase tracking-[0.4em]">Keyword Prospect</th>
+                    <th className="px-6 md:px-12 py-6 md:py-8 text-[10px] font-black text-gray-600 dark:text-gray-300 uppercase tracking-[0.4em]">Volume</th>
+                    <th className="px-6 md:px-12 py-6 md:py-8 text-[10px] font-black text-gray-600 dark:text-gray-300 uppercase tracking-[0.4em]">Difficulty</th>
+                    <th className="px-6 md:px-12 py-6 md:py-8 text-[10px] font-black text-gray-600 dark:text-gray-300 uppercase tracking-[0.4em]">Avg CPC</th>
                   </tr>
                 </thead>
                 <tbody className="divide-y divide-gray-100 dark:divide-white/5">
                   {results.map((item, idx) => (
                     <tr key={idx} className="hover:bg-blue-50/30 dark:hover:bg-blue-500/5 transition-all group">
-                      <td className="px-12 py-8">
-                        <div className="flex items-center gap-6">
-                          <span className="text-xl font-black text-gray-900 dark:text-white tracking-tight">{item.keyword}</span>
+                      <td className="px-6 md:px-12 py-6 md:py-8">
+                        <div className="flex items-center gap-4 md:gap-6">
+                          <span className="text-lg md:text-xl font-black text-gray-900 dark:text-white tracking-tight">
+                            <TypewriterText 
+                              text={item.keyword} 
+                              delay={idx * 400} 
+                              onComplete={() => {
+                                if (idx === results.length - 1) {
+                                  typingAudio.playCompleteChime();
+                                }
+                              }}
+                            />
+                          </span>
                           <button 
                             onClick={() => copyToClipboard(item.keyword, idx)}
-                            className="p-2.5 bg-gray-50 dark:bg-white/5 rounded-xl transition-all text-gray-400 dark:text-gray-500 hover:text-blue-600 opacity-0 group-hover:opacity-100"
+                            className="p-2 md:p-2.5 bg-gray-50 dark:bg-white/5 rounded-xl transition-all text-gray-400 dark:text-gray-500 hover:text-blue-600 opacity-0 group-hover:opacity-100"
                           >
                             {copiedIndex === idx ? <Check className="w-4 h-4" /> : <Copy className="w-4 h-4" />}
                           </button>
                         </div>
                       </td>
-                      <td className="px-12 py-8">
-                        <div className="flex items-center gap-3 font-black text-gray-900 dark:text-white text-lg">
-                          <BarChart3 className="w-5 h-5 text-gray-300 dark:text-gray-600" />
+                      <td className="px-6 md:px-12 py-6 md:py-8">
+                        <div className="flex items-center gap-2 md:gap-3 font-black text-gray-900 dark:text-white text-base md:text-lg">
+                          <BarChart3 className="w-4 h-4 md:w-5 md:h-5 text-gray-300 dark:text-gray-600" />
                           <span>{item.volume}</span>
                         </div>
                       </td>
-                      <td className="px-12 py-8 relative">
+                      <td className="px-6 md:px-12 py-6 md:py-8 relative">
                         <div 
                           className="relative inline-block cursor-help group/tip"
                           onMouseEnter={() => setHoveredDifficulty(idx)}
@@ -297,9 +454,9 @@ export const KeywordTool: React.FC = () => {
                           )}
                         </div>
                       </td>
-                      <td className="px-12 py-8">
-                        <div className="flex items-center gap-2 font-black text-gray-900 dark:text-white text-lg tabular-nums">
-                          <DollarSign className="w-5 h-5 text-gray-300 dark:text-gray-600 group-hover:text-green-600 transition-colors" />
+                      <td className="px-6 md:px-12 py-6 md:py-8">
+                        <div className="flex items-center gap-2 font-black text-gray-900 dark:text-white text-base md:text-lg tabular-nums">
+                          <DollarSign className="w-4 h-4 md:w-5 md:h-5 text-gray-300 dark:text-gray-600 group-hover:text-green-600 transition-colors" />
                           <span>{item.cpc}</span>
                         </div>
                       </td>
@@ -309,6 +466,26 @@ export const KeywordTool: React.FC = () => {
               </table>
             </div>
           </div>
+
+          {/* Related Topics */}
+          {relatedTopics && relatedTopics.length > 0 && (
+            <div className="pt-8 animate-in fade-in slide-in-from-bottom-4 duration-700">
+              <h4 className="text-[10px] font-black text-gray-500 dark:text-gray-400 uppercase tracking-[0.4em] flex items-center gap-2 mb-6">
+                <Search className="w-3.5 h-3.5" /> Explore Related Niches
+              </h4>
+              <div className="flex flex-wrap gap-3">
+                {relatedTopics.map((topic, idx) => (
+                  <button
+                    key={idx}
+                    onClick={(e) => handleSearch(e, topic)}
+                    className="px-6 py-3 bg-white dark:bg-white/[0.03] border border-gray-100 dark:border-white/5 rounded-2xl text-sm font-black text-gray-700 dark:text-gray-300 hover:text-blue-600 dark:hover:text-blue-400 hover:border-blue-500/30 hover:bg-blue-50/30 dark:hover:bg-blue-500/5 transition-all shadow-sm hover:shadow-md"
+                  >
+                    {topic}
+                  </button>
+                ))}
+              </div>
+            </div>
+          )}
         </div>
       )}
 

@@ -12,7 +12,17 @@ import { TermsOfService } from './components/TermsOfService';
 import { Support } from './components/Support';
 import { ContactModal } from './components/ContactModal';
 import { AuthModal } from './components/AuthModal';
-import { Zap, ShieldCheck, Star, Users, Briefcase, Linkedin, X, BookOpen, MessageCircle, Search, Mail, Activity, CheckCircle, Shield, Rocket, Cpu, Database, Globe, Sun, Moon, ChevronRight, Code } from 'lucide-react';
+import { Zap, ShieldCheck, Star, Users, Briefcase, Linkedin, X, BookOpen, MessageCircle, Search, Mail, Activity, CheckCircle, Shield, Rocket, Cpu, Database, Globe, Sun, Moon, ChevronRight, Code, Menu, Volume2, VolumeX } from 'lucide-react';
+import { audio } from './utils/audioUtils';
+import { typingAudio } from './utils/typingSoundUtils';
+import { satisfyingAudio } from './utils/satisfyingAudioEngine';
+
+export const runtime = 'edge';
+export const viewport = {
+  width: 'device-width',
+  initialScale: 1,
+  maximumScale: 1,
+};
 
 export type Tab = 'TOOL' | 'FEATURES' | 'BLOG' | 'API' | 'DOCS' | 'PRICING' | 'ABOUT' | 'PRIVACY' | 'TERMS' | 'SUPPORT';
 
@@ -20,6 +30,8 @@ const App: React.FC = () => {
   const [activeTab, setActiveTab] = useState<Tab>('TOOL');
   const [isContactOpen, setIsContactOpen] = useState(false);
   const [isAuthOpen, setIsAuthOpen] = useState(false);
+  const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
+  const [isMuted, setIsMuted] = useState(true);
   
   const [theme, setTheme] = useState<'light' | 'dark'>(() => {
     if (typeof window !== 'undefined') {
@@ -29,6 +41,37 @@ const App: React.FC = () => {
     }
     return 'light';
   });
+
+  // Handle Audio Initialization on first interaction
+  useEffect(() => {
+    setIsMuted(audio.getMuteState());
+
+    const handleInteraction = () => {
+      audio.init();
+      typingAudio.init();
+      satisfyingAudio.init();
+      document.removeEventListener('click', handleInteraction);
+      document.removeEventListener('touchstart', handleInteraction);
+    };
+
+    document.addEventListener('click', handleInteraction);
+    document.addEventListener('touchstart', handleInteraction);
+
+    return () => {
+      document.removeEventListener('click', handleInteraction);
+      document.removeEventListener('touchstart', handleInteraction);
+    };
+  }, []);
+
+  const toggleMute = () => {
+    const newMuteState = audio.toggleMute();
+    setIsMuted(newMuteState);
+  };
+
+  const handleTabChange = (tab: Tab) => {
+    audio.playNav();
+    setActiveTab(tab);
+  };
 
   // Handle Theme Change
   useEffect(() => {
@@ -41,11 +84,15 @@ const App: React.FC = () => {
     localStorage.setItem('theme', theme);
   }, [theme]);
 
-  const toggleTheme = () => setTheme(prev => prev === 'light' ? 'dark' : 'light');
+  const toggleTheme = () => {
+    audio.playHover();
+    setTheme(prev => prev === 'light' ? 'dark' : 'light');
+  };
 
   // Smooth scroll on tab switch
   useEffect(() => {
     window.scrollTo({ top: 0, behavior: 'smooth' });
+    setIsMobileMenuOpen(false); // Close mobile menu on tab switch
   }, [activeTab]);
 
   const renderContent = () => {
@@ -75,7 +122,8 @@ const App: React.FC = () => {
   const FooterLink = ({ label, tab }: { label: string; tab: Tab }) => (
     <li>
       <button 
-        onClick={() => setActiveTab(tab)}
+        onClick={() => handleTabChange(tab)}
+        onMouseEnter={audio.playHover}
         className="group flex items-center gap-1 text-gray-700 dark:text-gray-300 hover:text-blue-600 dark:hover:text-blue-400 transition-all duration-300 ease-out hover:opacity-80"
       >
         <span className="text-[11px] font-black uppercase tracking-[0.2em]">{label}</span>
@@ -91,16 +139,17 @@ const App: React.FC = () => {
 
       {/* Header with Glassmorphism */}
       <header className="sticky top-0 z-50 bg-white/70 dark:bg-black/50 glass-effect border-b border-gray-200 dark:border-white/10 transition-all duration-500">
-        <div className="max-w-7xl mx-auto px-6 h-20 flex items-center justify-between">
+        <div className="max-w-7xl mx-auto px-4 md:px-6 h-20 flex items-center justify-between">
           <div 
-            className="flex items-center gap-6 group cursor-pointer hover:scale-[1.02] active:scale-[0.98] transition-all" 
-            onClick={() => setActiveTab('TOOL')}
+            className="flex items-center gap-4 md:gap-6 group cursor-pointer hover:scale-[1.02] active:scale-[0.98] transition-all" 
+            onClick={() => handleTabChange('TOOL')}
+            onMouseEnter={audio.playHover}
           >
-            <div className="bg-gray-900 dark:bg-white p-2.5 rounded-2xl shadow-xl shadow-gray-200 dark:shadow-none group-hover:bg-blue-600 dark:group-hover:bg-blue-500 transition-all duration-500 animate-logo-pulse">
-              <Zap className="w-6 h-6 text-white dark:text-black fill-current" />
+            <div className="bg-gray-900 dark:bg-white p-2 md:p-2.5 rounded-2xl shadow-xl shadow-gray-200 dark:shadow-none group-hover:bg-blue-600 dark:group-hover:bg-blue-500 transition-all duration-500 animate-logo-pulse">
+              <Zap className="w-5 h-5 md:w-6 md:h-6 text-white dark:text-black fill-current" />
             </div>
             <div className="flex flex-col">
-                <span className="text-2xl font-black tracking-tighter text-gray-900 dark:text-white leading-none">
+                <span className="text-xl md:text-2xl font-black tracking-tighter text-gray-900 dark:text-white leading-none">
                 Keyword<span className="text-blue-600 dark:text-blue-400">Pro</span>
                 </span>
                 <div className="flex items-center gap-2 mt-1">
@@ -108,19 +157,21 @@ const App: React.FC = () => {
                         <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-green-500 opacity-75"></span>
                         <span className="relative inline-flex rounded-full h-2 w-2 bg-green-500"></span>
                     </span>
-                    <span className="text-[9px] font-black text-gray-600 dark:text-gray-400 uppercase tracking-widest whitespace-nowrap">
+                    <span className="text-[8px] md:text-[9px] font-black text-gray-600 dark:text-gray-400 uppercase tracking-widest whitespace-nowrap">
                       Engines Live
                     </span>
                 </div>
             </div>
           </div>
 
+          {/* Desktop Navigation */}
           <div className="hidden md:flex items-center gap-8">
             <nav className="flex items-center gap-8 text-[11px] font-black uppercase tracking-[0.2em] text-gray-600 dark:text-gray-400">
                 {['TOOL', 'FEATURES', 'BLOG', 'DOCS', 'PRICING', 'SUPPORT'].map((tab) => (
                     <button 
                         key={tab}
-                        onClick={() => setActiveTab(tab as Tab)}
+                        onClick={() => handleTabChange(tab as Tab)}
+                        onMouseEnter={audio.playHover}
                         className={`transition-all hover:scale-105 hover:text-gray-900 dark:hover:text-white ${activeTab === tab ? 'text-gray-900 dark:text-white underline decoration-blue-500 decoration-2 underline-offset-8' : ''}`}
                     >
                         {tab === 'TOOL' ? 'Analyzer' : tab.charAt(0) + tab.slice(1).toLowerCase()}
@@ -130,6 +181,18 @@ const App: React.FC = () => {
             <div className="h-6 w-px bg-gray-200 dark:bg-white/10"></div>
             
             <div className="flex items-center gap-3">
+              <button 
+                onClick={toggleMute}
+                className="w-11 h-11 flex items-center justify-center rounded-xl bg-gray-50 dark:bg-white/5 border border-gray-100 dark:border-white/10 hover:bg-white dark:hover:bg-white/10 hover:scale-110 active:scale-90 transition-all shadow-sm group"
+                aria-label="Toggle Sound"
+              >
+                {isMuted ? (
+                  <VolumeX className="w-5 h-5 text-gray-400 group-hover:text-rose-500" />
+                ) : (
+                  <Volume2 className="w-5 h-5 text-blue-500 group-hover:text-blue-600" />
+                )}
+              </button>
+
               <button 
                 onClick={toggleTheme}
                 className="w-11 h-11 flex items-center justify-center rounded-xl bg-gray-50 dark:bg-white/5 border border-gray-100 dark:border-white/10 hover:bg-white dark:hover:bg-white/10 hover:scale-110 active:scale-90 transition-all shadow-sm group"
@@ -143,14 +206,77 @@ const App: React.FC = () => {
               </button>
 
               <button 
-                onClick={() => setIsAuthOpen(true)}
+                onClick={() => { audio.playHover(); setIsAuthOpen(true); }}
+                onMouseEnter={audio.playHover}
                 className="text-[11px] font-black tracking-[0.2em] uppercase text-white bg-gray-900 dark:bg-white dark:text-black px-6 py-3.5 rounded-xl hover:bg-black dark:hover:bg-gray-200 hover:scale-[1.05] active:scale-[0.95] transition-all shadow-lg shadow-gray-200 dark:shadow-none"
               >
                 Get Premium Key
               </button>
             </div>
           </div>
+
+          {/* Mobile Navigation Toggle */}
+          <div className="flex md:hidden items-center gap-3">
+            <button 
+              onClick={toggleMute}
+              className="w-10 h-10 flex items-center justify-center rounded-xl bg-gray-50 dark:bg-white/5 border border-gray-100 dark:border-white/10 hover:bg-white dark:hover:bg-white/10 transition-all shadow-sm"
+              aria-label="Toggle Sound"
+            >
+              {isMuted ? (
+                <VolumeX className="w-4 h-4 text-gray-400" />
+              ) : (
+                <Volume2 className="w-4 h-4 text-blue-500" />
+              )}
+            </button>
+            <button 
+              onClick={toggleTheme}
+              className="w-10 h-10 flex items-center justify-center rounded-xl bg-gray-50 dark:bg-white/5 border border-gray-100 dark:border-white/10 hover:bg-white dark:hover:bg-white/10 transition-all shadow-sm"
+              aria-label="Toggle Theme"
+            >
+              {theme === 'light' ? (
+                <Moon className="w-4 h-4 text-gray-600" />
+              ) : (
+                <Sun className="w-4 h-4 text-amber-400" />
+              )}
+            </button>
+            <button 
+              onClick={() => { audio.playHover(); setIsMobileMenuOpen(!isMobileMenuOpen); }}
+              className="w-10 h-10 flex items-center justify-center rounded-xl bg-gray-900 dark:bg-white text-white dark:text-black transition-all shadow-sm"
+              aria-label="Toggle Menu"
+            >
+              {isMobileMenuOpen ? <X className="w-5 h-5" /> : <Menu className="w-5 h-5" />}
+            </button>
+          </div>
         </div>
+
+        {/* Mobile Menu Dropdown */}
+        {isMobileMenuOpen && (
+          <div className="md:hidden absolute top-20 left-0 w-full bg-white dark:bg-[#0A0A0A] border-b border-gray-200 dark:border-white/10 shadow-2xl animate-in slide-in-from-top-2 duration-300">
+            <nav className="flex flex-col p-4 space-y-2">
+              {['TOOL', 'FEATURES', 'BLOG', 'DOCS', 'PRICING', 'SUPPORT'].map((tab) => (
+                <button 
+                  key={tab}
+                  onClick={() => handleTabChange(tab as Tab)}
+                  className={`p-4 text-left rounded-xl font-black uppercase tracking-widest text-xs transition-all ${activeTab === tab ? 'bg-blue-50 dark:bg-blue-500/10 text-blue-600 dark:text-blue-400' : 'text-gray-600 dark:text-gray-400 hover:bg-gray-50 dark:hover:bg-white/5'}`}
+                >
+                  {tab === 'TOOL' ? 'Analyzer' : tab.charAt(0) + tab.slice(1).toLowerCase()}
+                </button>
+              ))}
+              <div className="pt-4 mt-2 border-t border-gray-100 dark:border-white/10">
+                <button 
+                  onClick={() => {
+                    audio.playHover();
+                    setIsMobileMenuOpen(false);
+                    setIsAuthOpen(true);
+                  }}
+                  className="w-full text-xs font-black tracking-[0.2em] uppercase text-white bg-gray-900 dark:bg-white dark:text-black px-6 py-4 rounded-xl hover:bg-black dark:hover:bg-gray-200 transition-all"
+                >
+                  Get Premium Key
+                </button>
+              </div>
+            </nav>
+          </div>
+        )}
       </header>
 
       <main className="flex-1 py-12 px-6">
@@ -226,7 +352,8 @@ const App: React.FC = () => {
         ].map((item) => (
             <button 
                 key={item.id}
-                onClick={() => setActiveTab(item.id as Tab)}
+                onClick={() => handleTabChange(item.id as Tab)}
+                onMouseEnter={audio.playHover}
                 className={`flex flex-col items-center gap-1 transition-all duration-300 active:scale-75 group ${activeTab === item.id ? 'text-blue-600 dark:text-blue-400' : 'text-gray-500 dark:text-gray-400 hover:text-gray-900 dark:hover:text-white'}`}
                 aria-label={`Switch to ${item.label}`}
             >
@@ -239,6 +366,7 @@ const App: React.FC = () => {
 
         <button 
             onClick={toggleTheme}
+            onMouseEnter={audio.playHover}
             className="flex flex-col items-center gap-1 text-gray-500 dark:text-gray-400 hover:text-gray-900 dark:hover:text-white active:rotate-180 transition-all duration-500 group"
             aria-label="Toggle Theme"
         >

@@ -3,6 +3,10 @@ export interface KeywordSuggestion {
   keyword: string;
   volume: string;
   difficulty: 'Low' | 'Medium' | 'High';
-  trend: number[];
   cpc: string;
+}
+
+export interface KeywordResponse {
+  results: KeywordSuggestion[];
+  relatedTopics: string[];
 }
