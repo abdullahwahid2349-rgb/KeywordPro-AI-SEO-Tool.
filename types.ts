@@ -4,6 +4,8 @@ export interface KeywordSuggestion {
   volume: string;
   difficulty: 'Low' | 'Medium' | 'High';
   cpc: string;
+  ctr: string;
+  trend: number[];
 }
 
 export interface KeywordResponse {

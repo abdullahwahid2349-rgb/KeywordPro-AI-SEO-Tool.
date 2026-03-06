@@ -1,5 +1,6 @@
 import React, { useState, useEffect } from 'react';
-import { Search, TrendingUp, BarChart3, DollarSign, Download, Loader2, Copy, Check, FileText, Info, Calculator, ShieldCheck, Zap, Users, Star, Bookmark, History, Trash2, Play, ArrowUpDown } from 'lucide-react';
+import { Search, TrendingUp, BarChart3, DollarSign, Download, Loader2, Copy, Check, FileText, Info, Calculator, ShieldCheck, Zap, Users, Star, Bookmark, History, Trash2, Play, ArrowUpDown, MousePointerClick, Globe } from 'lucide-react';
+import { LineChart, Line, ResponsiveContainer, YAxis } from 'recharts';
 import { getKeywordSuggestions } from '../services/geminiService';
 import { KeywordSuggestion } from '../types';
 import { audio } from '../utils/audioUtils';
@@ -12,49 +13,8 @@ interface SavedSearch {
   timestamp: number;
   results: KeywordSuggestion[];
   relatedTopics?: string[];
+  mode?: 'keyword' | 'competitor';
 }
-
-const TypewriterText: React.FC<{ text: string; delay?: number; onComplete?: () => void }> = ({ text, delay = 0, onComplete }) => {
-  const [displayedText, setDisplayedText] = useState('');
-  const [isTyping, setIsTyping] = useState(false);
-
-  useEffect(() => {
-    setDisplayedText('');
-    setIsTyping(false);
-    
-    let timeout: NodeJS.Timeout;
-    let charIndex = 0;
-
-    const startTyping = () => {
-      setIsTyping(true);
-      const typeChar = () => {
-        if (charIndex < text.length) {
-          setDisplayedText(text.substring(0, charIndex + 1));
-          satisfyingAudio.playAiType();
-          charIndex++;
-          // Random delay between 40ms and 90ms for a natural, human-like typing feel
-          const randomDelay = Math.floor(Math.random() * 50) + 40;
-          timeout = setTimeout(typeChar, randomDelay);
-        } else {
-          setIsTyping(false);
-          if (onComplete) onComplete();
-        }
-      };
-      typeChar();
-    };
-
-    timeout = setTimeout(startTyping, delay);
-
-    return () => clearTimeout(timeout);
-  }, [text, delay]);
-
-  return (
-    <span className="relative">
-      {displayedText}
-      {isTyping && <span className="animate-pulse border-r-2 border-blue-500 ml-1"></span>}
-    </span>
-  );
-};
 
 export const KeywordTool: React.FC = () => {
   const [keyword, setKeyword] = useState('');
@@ -66,7 +26,9 @@ export const KeywordTool: React.FC = () => {
   const [savedSearches, setSavedSearches] = useState<SavedSearch[]>([]);
   const [justSaved, setJustSaved] = useState(false);
   const [isPromoOpen, setIsPromoOpen] = useState(false);
-  const [sortOption, setSortOption] = useState<'default' | 'volume_desc' | 'volume_asc' | 'difficulty_desc' | 'difficulty_asc' | 'cpc_desc' | 'cpc_asc'>('default');
+  const [error, setError] = useState<string | null>(null);
+  const [searchMode, setSearchMode] = useState<'keyword' | 'competitor'>('keyword');
+  const [sortOption, setSortOption] = useState<'default' | 'volume_desc' | 'volume_asc' | 'difficulty_desc' | 'difficulty_asc' | 'cpc_desc' | 'cpc_asc' | 'ctr_desc' | 'ctr_asc'>('default');
   const abortControllerRef = React.useRef<AbortController | null>(null);
 
   // Load saved searches from localStorage
@@ -102,6 +64,7 @@ export const KeywordTool: React.FC = () => {
     if (cachedSearch) {
       setResults(cachedSearch.results);
       setRelatedTopics(cachedSearch.relatedTopics || []);
+      setError(null);
       audio.playSuccess();
       return;
     }
@@ -113,13 +76,21 @@ export const KeywordTool: React.FC = () => {
     const abortController = new AbortController();
     abortControllerRef.current = abortController;
 
+    let isTimeout = false;
+    const timeoutId = setTimeout(() => {
+      isTimeout = true;
+      abortController.abort();
+    }, 5000);
+
     setLoading(true);
     setJustSaved(false);
+    setError(null);
     try {
-      const data = await getKeywordSuggestions(query, abortController.signal);
+      const data = await getKeywordSuggestions(query, searchMode, abortController.signal);
+      clearTimeout(timeoutId);
       
-      // If request was aborted, don't update state
-      if (abortController.signal.aborted) return;
+      // If request was aborted by a new search, don't update state
+      if (abortController.signal.aborted && !isTimeout) return;
 
       setResults(data.results || []);
       setRelatedTopics(data.relatedTopics || []);
@@ -132,7 +103,8 @@ export const KeywordTool: React.FC = () => {
           keyword: query,
           timestamp: Date.now(),
           results: data.results,
-          relatedTopics: data.relatedTopics || []
+          relatedTopics: data.relatedTopics || [],
+          mode: searchMode
         };
         
         setSavedSearches(prev => {
@@ -141,14 +113,27 @@ export const KeywordTool: React.FC = () => {
           return [newSave, ...filtered].slice(0, 10);
         });
       } else {
+        setError('No Results Found. Try a different keyword.');
         audio.playError();
       }
     } catch (err: any) {
-      if (err.name === 'AbortError') return;
+      clearTimeout(timeoutId);
+      if (err.name === 'AbortError') {
+        if (isTimeout) {
+          setResults([]);
+          setRelatedTopics([]);
+          setError('Request timed out after 5 seconds. Please try again.');
+          audio.playError();
+        }
+        return;
+      }
       console.error(err);
+      setError('An error occurred while fetching results.');
       audio.playError();
+      setResults([]);
+      setRelatedTopics([]);
     } finally {
-      if (!abortController.signal.aborted) {
+      if (!abortController.signal.aborted || isTimeout) {
         setLoading(false);
       }
     }
@@ -159,6 +144,7 @@ export const KeywordTool: React.FC = () => {
     setKeyword(save.keyword);
     setResults(save.results);
     setRelatedTopics(save.relatedTopics || []);
+    if (save.mode) setSearchMode(save.mode);
     setJustSaved(true);
     window.scrollTo({ top: 0, behavior: 'smooth' });
   };
@@ -185,8 +171,15 @@ export const KeywordTool: React.FC = () => {
   };
 
   const exportToCSV = () => {
-    const headers = ['Keyword', 'Search Volume', 'Difficulty', 'CPC'];
-    const rows = sortedResults.map(r => [r.keyword, r.volume, r.difficulty, r.cpc].join(','));
+    const headers = ['Keyword', 'Search Volume', 'Difficulty', 'CPC', 'CTR', 'Trend (12m)'];
+    const rows = sortedResults.map(r => [
+      r.keyword, 
+      r.volume, 
+      r.difficulty, 
+      r.cpc, 
+      r.ctr,
+      `"${r.trend ? r.trend.join(',') : ''}"`
+    ].join(','));
     const csvContent = [headers.join(','), ...rows].join('\n');
     const blob = new Blob([csvContent], { type: 'text/csv;charset=utf-8;' });
     const url = URL.createObjectURL(blob);
@@ -213,6 +206,12 @@ export const KeywordTool: React.FC = () => {
     return isNaN(num) ? 0 : num;
   };
 
+  const parseCtr = (ctr: string) => {
+    if (!ctr) return 0;
+    const num = parseFloat(ctr.replace(/[^0-9.-]+/g,""));
+    return isNaN(num) ? 0 : num;
+  };
+
   const sortedResults = [...results].sort((a, b) => {
     switch (sortOption) {
       case 'volume_desc': return parseVolume(b.volume) - parseVolume(a.volume);
@@ -221,13 +220,16 @@ export const KeywordTool: React.FC = () => {
       case 'difficulty_asc': return parseDifficulty(a.difficulty) - parseDifficulty(b.difficulty);
       case 'cpc_desc': return parseCpc(b.cpc) - parseCpc(a.cpc);
       case 'cpc_asc': return parseCpc(a.cpc) - parseCpc(b.cpc);
+      case 'ctr_desc': return parseCtr(b.ctr) - parseCtr(a.ctr);
+      case 'ctr_asc': return parseCtr(a.ctr) - parseCtr(b.ctr);
       default: return 0;
     }
   });
 
+  const isHighVolume = (vol: string) => parseVolume(vol) > 10000;
+
   const getVolumeHighlight = (vol: string) => {
-    const num = parseVolume(vol);
-    if (num > 10000) return 'text-emerald-600 dark:text-emerald-400 bg-emerald-50 dark:bg-emerald-500/10 px-2 py-1 rounded-lg';
+    if (isHighVolume(vol)) return 'text-emerald-600 dark:text-emerald-400 bg-emerald-50 dark:bg-emerald-500/10 px-2 py-1 rounded-lg';
     return '';
   };
 
@@ -236,8 +238,14 @@ export const KeywordTool: React.FC = () => {
     return '';
   };
 
+  const getCtrHighlight = (ctr: string) => {
+    const num = parseCtr(ctr);
+    if (num > 10) return 'text-blue-600 dark:text-blue-400 bg-blue-50 dark:bg-blue-500/10 px-2 py-1 rounded-lg';
+    return '';
+  };
+
   return (
-    <div className="max-w-6xl mx-auto space-y-12">
+    <div className="w-full max-w-7xl mx-auto px-4 md:px-8 space-y-12">
       <PromoVideoModal isOpen={isPromoOpen} onClose={() => setIsPromoOpen(false)} />
       
       {/* Search Header */}
@@ -276,9 +284,32 @@ export const KeywordTool: React.FC = () => {
           </div>
         </div>
         
-        <form onSubmit={handleSearch} className="flex flex-col md:flex-row gap-4 max-w-3xl mx-auto relative z-10 mt-8">
+        <div className="flex justify-center mt-12 relative z-10">
+          <div className="bg-gray-100 dark:bg-white/5 p-1.5 rounded-full inline-flex border border-gray-200 dark:border-white/10 shadow-inner">
+            <button
+              onClick={() => { audio.playHover(); setSearchMode('keyword'); }}
+              className={`px-6 py-2.5 rounded-full text-sm font-black transition-all uppercase tracking-widest flex items-center gap-2 ${searchMode === 'keyword' ? 'bg-white dark:bg-white/10 text-gray-900 dark:text-white shadow-sm' : 'text-gray-500 hover:text-gray-700 dark:hover:text-gray-300'}`}
+            >
+              <Search className="w-4 h-4" />
+              Keyword Ideas
+            </button>
+            <button
+              onClick={() => { audio.playHover(); setSearchMode('competitor'); }}
+              className={`px-6 py-2.5 rounded-full text-sm font-black transition-all uppercase tracking-widest flex items-center gap-2 ${searchMode === 'competitor' ? 'bg-white dark:bg-white/10 text-gray-900 dark:text-white shadow-sm' : 'text-gray-500 hover:text-gray-700 dark:hover:text-gray-300'}`}
+            >
+              <Globe className="w-4 h-4" />
+              Competitor Analysis
+            </button>
+          </div>
+        </div>
+        
+        <form onSubmit={handleSearch} className="flex flex-col md:flex-row gap-4 max-w-3xl mx-auto relative z-10 mt-6">
           <div className="relative flex-1">
-            <Search className="absolute left-6 top-1/2 -translate-y-1/2 text-gray-400 dark:text-gray-600 w-6 h-6" />
+            {searchMode === 'keyword' ? (
+              <Search className="absolute left-6 top-1/2 -translate-y-1/2 text-gray-400 dark:text-gray-600 w-6 h-6" />
+            ) : (
+              <Globe className="absolute left-6 top-1/2 -translate-y-1/2 text-gray-400 dark:text-gray-600 w-6 h-6" />
+            )}
             <input
               type="text"
               value={keyword}
@@ -293,7 +324,7 @@ export const KeywordTool: React.FC = () => {
                   satisfyingAudio.playKeyPress();
                 }
               }}
-              placeholder="Enter seed keyword (e.g. 'saas marketing')"
+              placeholder={searchMode === 'keyword' ? "Enter seed keyword (e.g. 'saas marketing')" : "Enter competitor URL (e.g. 'stripe.com')"}
               className="w-full pl-16 pr-8 py-5 md:py-6 bg-gray-50 dark:bg-white/5 border border-gray-100 dark:border-white/10 rounded-3xl focus:ring-4 focus:ring-blue-500/30 focus:border-blue-500 shadow-sm focus:shadow-[0_0_20px_rgba(59,130,246,0.3)] outline-none transition-all duration-200 text-lg md:text-xl font-bold dark:text-white"
             />
           </div>
@@ -343,8 +374,11 @@ export const KeywordTool: React.FC = () => {
                   className="group relative bg-white dark:bg-white/[0.03] border border-gray-100 dark:border-white/5 px-6 py-4 rounded-2xl cursor-pointer hover:border-blue-500/30 hover:bg-blue-50/30 dark:hover:bg-blue-500/5 transition-all flex items-center gap-4 shadow-sm hover:shadow-md"
                 >
                   <div className="flex flex-col">
-                    <span className="font-black text-gray-900 dark:text-white text-sm tracking-tight">{save.keyword}</span>
-                    <span className="text-[9px] font-bold text-gray-500 dark:text-gray-400 uppercase tracking-tighter">
+                    <span className="font-black text-gray-900 dark:text-white text-sm tracking-tight flex items-center gap-2">
+                      {save.mode === 'competitor' ? <Globe className="w-3.5 h-3.5 text-blue-500" /> : <Search className="w-3.5 h-3.5 text-emerald-500" />}
+                      {save.keyword}
+                    </span>
+                    <span className="text-[9px] font-bold text-gray-500 dark:text-gray-400 uppercase tracking-tighter mt-1">
                       {new Date(save.timestamp).toLocaleDateString()} • {save.results.length} results
                     </span>
                   </div>
@@ -360,6 +394,14 @@ export const KeywordTool: React.FC = () => {
         </div>
       )}
 
+      {/* Error State */}
+      {error && !loading && (
+        <div className="max-w-3xl mx-auto bg-red-50 dark:bg-red-500/10 border border-red-200 dark:border-red-500/20 text-red-600 dark:text-red-400 p-4 rounded-2xl text-center font-medium shadow-sm animate-in fade-in slide-in-from-top-4">
+          <AlertCircle className="w-5 h-5 inline-block mr-2 -mt-0.5" />
+          {error}
+        </div>
+      )}
+
       {/* Loading Skeleton */}
       {loading && (
         <div className="space-y-8 animate-in fade-in duration-300">
@@ -371,37 +413,19 @@ export const KeywordTool: React.FC = () => {
             <div className="h-14 w-40 bg-gray-200 dark:bg-white/10 rounded-3xl animate-pulse"></div>
           </div>
 
-          <div className="bg-white dark:bg-white/[0.03] rounded-[2rem] md:rounded-[3.5rem] shadow-2xl border border-gray-100 dark:border-white/5 overflow-hidden">
-            <div className="overflow-x-auto">
-              <table className="w-full text-left min-w-[600px]">
-                <thead>
-                  <tr className="bg-gray-50/50 dark:bg-white/5 border-b border-gray-100 dark:border-white/5">
-                    <th className="px-6 md:px-12 py-6 md:py-8"><div className="h-3 w-24 bg-gray-200 dark:bg-white/10 rounded-full animate-pulse"></div></th>
-                    <th className="px-6 md:px-12 py-6 md:py-8"><div className="h-3 w-16 bg-gray-200 dark:bg-white/10 rounded-full animate-pulse"></div></th>
-                    <th className="px-6 md:px-12 py-6 md:py-8"><div className="h-3 w-20 bg-gray-200 dark:bg-white/10 rounded-full animate-pulse"></div></th>
-                    <th className="px-6 md:px-12 py-6 md:py-8"><div className="h-3 w-16 bg-gray-200 dark:bg-white/10 rounded-full animate-pulse"></div></th>
-                  </tr>
-                </thead>
-                <tbody className="divide-y divide-gray-100 dark:divide-white/5">
-                  {[...Array(5)].map((_, idx) => (
-                    <tr key={idx}>
-                      <td className="px-6 md:px-12 py-6 md:py-8">
-                        <div className="h-6 w-48 bg-gray-200 dark:bg-white/10 rounded-lg animate-pulse"></div>
-                      </td>
-                      <td className="px-6 md:px-12 py-6 md:py-8">
-                        <div className="h-5 w-16 bg-gray-200 dark:bg-white/10 rounded-lg animate-pulse"></div>
-                      </td>
-                      <td className="px-6 md:px-12 py-6 md:py-8">
-                        <div className="h-8 w-20 bg-gray-200 dark:bg-white/10 rounded-2xl animate-pulse"></div>
-                      </td>
-                      <td className="px-6 md:px-12 py-6 md:py-8">
-                        <div className="h-5 w-16 bg-gray-200 dark:bg-white/10 rounded-lg animate-pulse"></div>
-                      </td>
-                    </tr>
-                  ))}
-                </tbody>
-              </table>
-            </div>
+          <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-6">
+            {[...Array(6)].map((_, idx) => (
+              <div key={idx} className="bg-white dark:bg-white/[0.03] border border-gray-100 dark:border-white/5 rounded-[2rem] p-6 flex flex-col gap-6">
+                <div className="h-8 w-3/4 bg-gray-200 dark:bg-white/10 rounded-xl animate-pulse"></div>
+                <div className="grid grid-cols-2 gap-4">
+                  <div className="h-10 w-full bg-gray-200 dark:bg-white/10 rounded-xl animate-pulse"></div>
+                  <div className="h-10 w-full bg-gray-200 dark:bg-white/10 rounded-xl animate-pulse"></div>
+                  <div className="h-10 w-full bg-gray-200 dark:bg-white/10 rounded-xl animate-pulse"></div>
+                  <div className="h-10 w-full bg-gray-200 dark:bg-white/10 rounded-xl animate-pulse"></div>
+                </div>
+                <div className="h-12 w-full bg-gray-200 dark:bg-white/10 rounded-xl animate-pulse mt-2"></div>
+              </div>
+            ))}
           </div>
         </div>
       )}
@@ -430,6 +454,8 @@ export const KeywordTool: React.FC = () => {
                   <option value="difficulty_desc">Difficulty (High to Low)</option>
                   <option value="cpc_desc">CPC (High to Low)</option>
                   <option value="cpc_asc">CPC (Low to High)</option>
+                  <option value="ctr_desc">CTR (High to Low)</option>
+                  <option value="ctr_asc">CTR (Low to High)</option>
                 </select>
                 <ArrowUpDown className="absolute right-4 top-1/2 -translate-y-1/2 w-4 h-4 text-gray-400 pointer-events-none" />
               </div>
@@ -443,87 +469,108 @@ export const KeywordTool: React.FC = () => {
             </div>
           </div>
 
-          <div className="bg-white dark:bg-white/[0.03] rounded-[2rem] md:rounded-[3.5rem] shadow-2xl border border-gray-100 dark:border-white/5 overflow-hidden transition-all duration-500">
-            <div className="overflow-x-auto">
-              <table className="w-full text-left min-w-[600px]">
-                <thead>
-                  <tr className="bg-gray-50/50 dark:bg-white/5 border-b border-gray-100 dark:border-white/5">
-                    <th className="px-6 md:px-12 py-6 md:py-8 text-[10px] font-black text-gray-600 dark:text-gray-300 uppercase tracking-[0.4em]">Keyword Prospect</th>
-                    <th className="px-6 md:px-12 py-6 md:py-8 text-[10px] font-black text-gray-600 dark:text-gray-300 uppercase tracking-[0.4em]">Volume</th>
-                    <th className="px-6 md:px-12 py-6 md:py-8 text-[10px] font-black text-gray-600 dark:text-gray-300 uppercase tracking-[0.4em]">Difficulty</th>
-                    <th className="px-6 md:px-12 py-6 md:py-8 text-[10px] font-black text-gray-600 dark:text-gray-300 uppercase tracking-[0.4em]">Avg CPC</th>
-                  </tr>
-                </thead>
-                <tbody className="divide-y divide-gray-100 dark:divide-white/5">
-                  {sortedResults.map((item, idx) => (
-                    <tr key={idx} className="hover:bg-blue-50/30 dark:hover:bg-blue-500/5 transition-all group">
-                      <td className="px-6 md:px-12 py-6 md:py-8">
-                        <div className="flex items-center gap-4 md:gap-6">
-                          <span className="text-lg md:text-xl font-black text-gray-900 dark:text-white tracking-tight">
-                            <TypewriterText 
-                              text={item.keyword} 
-                              delay={idx * 400} 
-                              onComplete={() => {
-                                if (idx === results.length - 1) {
-                                  satisfyingAudio.playSuccessChime();
-                                }
-                              }}
-                            />
-                          </span>
-                          <button 
-                            onClick={() => copyToClipboard(item.keyword, idx)}
-                            className="p-2 md:p-2.5 bg-gray-50 dark:bg-white/5 rounded-xl transition-all text-gray-400 dark:text-gray-500 hover:text-blue-600 opacity-0 group-hover:opacity-100"
-                          >
-                            {copiedIndex === idx ? <Check className="w-4 h-4" /> : <Copy className="w-4 h-4" />}
-                          </button>
+          <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-6 transition-all duration-500">
+            {sortedResults.map((item, idx) => (
+              <div key={idx} className="bg-white dark:bg-white/[0.03] border border-gray-100 dark:border-white/5 rounded-[2rem] p-6 flex flex-col gap-6 hover:shadow-2xl hover:-translate-y-1 transition-all duration-300 group h-full">
+                {/* Header: Keyword + Copy */}
+                <div className="flex items-start justify-between gap-4">
+                  <div className="flex flex-col gap-2">
+                    <div className="flex items-center gap-3 flex-wrap">
+                      <span className={`text-xl font-black tracking-tight ${isHighVolume(item.volume) ? 'text-transparent bg-clip-text bg-gradient-to-r from-emerald-600 to-blue-600 dark:from-emerald-400 dark:to-blue-400' : 'text-gray-900 dark:text-white'}`}>
+                        {item.keyword}
+                      </span>
+                      {isHighVolume(item.volume) && (
+                        <span className="px-2 py-0.5 bg-gradient-to-r from-emerald-500 to-blue-500 text-white text-[8px] font-black uppercase tracking-widest rounded-md shadow-sm animate-pulse">
+                          Hot
+                        </span>
+                      )}
+                    </div>
+                  </div>
+                  <button 
+                    onClick={() => copyToClipboard(item.keyword, idx)}
+                    className="p-2.5 bg-gray-50 dark:bg-white/5 rounded-xl transition-all text-gray-400 dark:text-gray-500 hover:text-blue-600 opacity-0 group-hover:opacity-100 shrink-0"
+                  >
+                    {copiedIndex === idx ? <Check className="w-4 h-4" /> : <Copy className="w-4 h-4" />}
+                  </button>
+                </div>
+
+                {/* Stats Grid */}
+                <div className="grid grid-cols-2 gap-4">
+                  {/* Volume */}
+                  <div className="flex flex-col gap-1">
+                    <span className="text-[10px] font-black text-gray-500 uppercase tracking-widest">Volume</span>
+                    <div className={`flex items-center gap-2 font-black text-gray-900 dark:text-white text-lg ${getVolumeHighlight(item.volume)}`}>
+                      <BarChart3 className="w-4 h-4 text-gray-400" />
+                      <span>{item.volume}</span>
+                    </div>
+                  </div>
+
+                  {/* Difficulty */}
+                  <div className="flex flex-col gap-1 relative">
+                    <span className="text-[10px] font-black text-gray-500 uppercase tracking-widest">Difficulty</span>
+                    <div 
+                      className="relative inline-block cursor-help group/tip w-fit"
+                      onMouseEnter={() => setHoveredDifficulty(idx)}
+                      onMouseLeave={() => setHoveredDifficulty(null)}
+                    >
+                      <span className={`px-3 py-1 rounded-xl text-[10px] font-black border uppercase tracking-[0.1em] ${getDifficultyColor(item.difficulty)} ${getDifficultyHighlight(item.difficulty)} transition-all hover:scale-105 block`}>
+                        {item.difficulty}
+                      </span>
+                      
+                      {hoveredDifficulty === idx && (
+                        <div className="absolute left-1/2 -translate-x-1/2 bottom-full mb-2 w-48 p-4 bg-white dark:bg-[#121212] border border-gray-200 dark:border-white/10 rounded-2xl shadow-xl z-50">
+                            <p className="text-[9px] text-gray-600 dark:text-gray-400 font-medium leading-tight">
+                              Factors: Backlink Age, Domain Authority, and SERP Competition.
+                            </p>
                         </div>
-                      </td>
-                      <td className="px-6 md:px-12 py-6 md:py-8">
-                        <div className={`flex items-center gap-2 md:gap-3 font-black text-gray-900 dark:text-white text-base md:text-lg w-fit ${getVolumeHighlight(item.volume)}`}>
-                          <BarChart3 className="w-4 h-4 md:w-5 md:h-5 text-gray-300 dark:text-gray-600" />
-                          <span>{item.volume}</span>
-                        </div>
-                      </td>
-                      <td className="px-6 md:px-12 py-6 md:py-8 relative">
-                        <div 
-                          className="relative inline-block cursor-help group/tip"
-                          onMouseEnter={() => setHoveredDifficulty(idx)}
-                          onMouseLeave={() => setHoveredDifficulty(null)}
-                        >
-                          <span className={`px-5 py-2 rounded-2xl text-[10px] font-black border uppercase tracking-[0.1em] ${getDifficultyColor(item.difficulty)} ${getDifficultyHighlight(item.difficulty)} transition-all hover:scale-110 block`}>
-                            {item.difficulty}
-                          </span>
-                          
-                          {hoveredDifficulty === idx && (
-                            <div className="absolute left-1/2 -translate-x-1/2 bottom-full mb-4 w-64 p-6 bg-white dark:bg-[#121212] border border-gray-200 dark:border-white/10 rounded-3xl shadow-2xl z-50 animate-in fade-in zoom-in-95 duration-200">
-                                <div className="space-y-4">
-                                  <div className="flex items-center gap-2">
-                                    <Calculator className="w-4 h-4 text-blue-500" />
-                                    <span className="text-[10px] font-black uppercase tracking-widest text-gray-500 dark:text-gray-400">Difficulty Model</span>
-                                  </div>
-                                  <div className="bg-gray-50 dark:bg-white/5 p-3 rounded-xl border border-gray-100 dark:border-white/5">
-                                    <code className="text-[11px] font-mono text-blue-600 dark:text-blue-400 font-black">KD = (BA + DA) × log(C)</code>
-                                  </div>
-                                  <p className="text-[10px] text-gray-600 dark:text-gray-400 font-medium leading-tight">
-                                    Factors: Backlink Age, Domain Authority, and SERP Competition.
-                                  </p>
-                                </div>
-                                <div className="absolute -bottom-2 left-1/2 -translate-x-1/2 w-4 h-4 bg-white dark:bg-[#121212] border-r border-b border-gray-200 dark:border-white/10 rotate-45"></div>
-                            </div>
-                          )}
-                        </div>
-                      </td>
-                      <td className="px-6 md:px-12 py-6 md:py-8">
-                        <div className="flex items-center gap-2 font-black text-gray-900 dark:text-white text-base md:text-lg tabular-nums">
-                          <DollarSign className="w-4 h-4 md:w-5 md:h-5 text-gray-300 dark:text-gray-600 group-hover:text-green-600 transition-colors" />
-                          <span>{item.cpc}</span>
-                        </div>
-                      </td>
-                    </tr>
-                  ))}
-                </tbody>
-              </table>
-            </div>
+                      )}
+                    </div>
+                  </div>
+
+                  {/* CPC */}
+                  <div className="flex flex-col gap-1">
+                    <span className="text-[10px] font-black text-gray-500 uppercase tracking-widest">Avg CPC</span>
+                    <div className="flex items-center gap-2 font-black text-gray-900 dark:text-white text-lg tabular-nums">
+                      <DollarSign className="w-4 h-4 text-gray-400" />
+                      <span>{item.cpc}</span>
+                    </div>
+                  </div>
+
+                  {/* CTR */}
+                  <div className="flex flex-col gap-1">
+                    <span className="text-[10px] font-black text-gray-500 uppercase tracking-widest">Est. CTR</span>
+                    <div className={`flex items-center gap-2 font-black text-gray-900 dark:text-white text-lg tabular-nums ${getCtrHighlight(item.ctr)}`}>
+                      <MousePointerClick className="w-4 h-4 text-gray-400" />
+                      <span>{item.ctr || 'N/A'}</span>
+                    </div>
+                  </div>
+                </div>
+
+                {/* Trend */}
+                <div className="flex flex-col gap-2 pt-4 border-t border-gray-100 dark:border-white/5 mt-auto">
+                  <span className="text-[10px] font-black text-gray-500 uppercase tracking-widest">12mo Trend</span>
+                  <div className="h-12 w-full">
+                    {item.trend && item.trend.length > 0 ? (
+                      <ResponsiveContainer width="100%" height="100%">
+                        <LineChart data={item.trend.map((val, i) => ({ name: i, value: val }))}>
+                          <YAxis domain={['dataMin - 10', 'dataMax + 10']} hide />
+                          <Line 
+                            type="monotone" 
+                            dataKey="value" 
+                            stroke={item.trend[item.trend.length - 1] >= item.trend[0] ? '#10b981' : '#f43f5e'} 
+                            strokeWidth={2} 
+                            dot={false} 
+                            isAnimationActive={true}
+                          />
+                        </LineChart>
+                      </ResponsiveContainer>
+                    ) : (
+                      <div className="flex items-center justify-center h-full text-gray-400 dark:text-gray-600 text-xs font-medium">No Data</div>
+                    )}
+                  </div>
+                </div>
+              </div>
+            ))}
           </div>
 
           {/* Related Topics */}

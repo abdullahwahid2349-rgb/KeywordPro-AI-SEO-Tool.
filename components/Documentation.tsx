@@ -9,7 +9,7 @@ interface DocSection {
 }
 
 export const Documentation: React.FC = () => {
-  const [activeSection, setActiveSection] = useState('getting-started');
+  const [activeSection, setActiveSection] = useState('gs-intro');
   const [copied, setCopied] = useState<string | null>(null);
 
   const handleCopy = (code: string, id: string) => {
@@ -20,94 +20,71 @@ export const Documentation: React.FC = () => {
 
   const sections: DocSection[] = [
     {
-      id: 'introduction',
+      id: 'gs-intro',
       title: 'Introduction',
       content: (
         <div className="space-y-8">
-          <div className="space-y-4">
-            <h2 className="text-4xl font-black text-gray-900 dark:text-white tracking-tight">Introduction</h2>
-            <p className="text-gray-600 dark:text-gray-400 text-lg leading-relaxed font-medium">
-              KeywordPro is a high-fidelity SEO intelligence platform. We provide data-driven insights to help growth teams dominate search results with scientific precision.
-            </p>
+          <div className="pg-header" id="gs-intro">
+            <span className="pg-tag">Documentation</span>
+            <h1 className="text-4xl font-black text-gray-900 dark:text-white tracking-tight font-syne">Keyword Pro Docs</h1>
+            <p className="text-gray-600 dark:text-gray-400 text-lg leading-relaxed font-medium">AI-powered SEO for South Asian teams. Zero bloat. Clean endpoints. Up and running in 5 minutes.</p>
           </div>
-          
-          <div className="grid gap-6">
-            <div className="p-8 bg-white dark:bg-white/[0.03] border border-gray-100 dark:border-white/5 rounded-[2.5rem] space-y-4">
-              <div className="w-12 h-12 bg-blue-50 dark:bg-blue-500/10 rounded-2xl flex items-center justify-center">
-                <Rocket className="w-6 h-6 text-blue-600" />
-              </div>
-              <h4 className="font-black text-xl dark:text-white">Our Mission</h4>
-              <p className="text-gray-500 dark:text-gray-400 font-medium leading-relaxed">
-                To democratize enterprise-grade SEO data, making high-throughput analysis accessible to every ambitious marketing team.
-              </p>
-            </div>
+
+          <div className="trust-bar flex flex-wrap gap-3 mb-8">
+            <div className="trust-pill flex items-center gap-2 bg-gray-50 dark:bg-white/[0.03] border border-gray-200 dark:border-white/10 rounded-lg px-4 py-2 text-sm text-gray-600 dark:text-gray-400"><span className="ok text-emerald-500 font-bold">✓</span> 99.9% Uptime SLA</div>
+            <div className="trust-pill flex items-center gap-2 bg-gray-50 dark:bg-white/[0.03] border border-gray-200 dark:border-white/10 rounded-lg px-4 py-2 text-sm text-gray-600 dark:text-gray-400"><span className="ok text-emerald-500 font-bold">✓</span> 60-Day Onboarding Support</div>
+            <div className="trust-pill flex items-center gap-2 bg-gray-50 dark:bg-white/[0.03] border border-gray-200 dark:border-white/10 rounded-lg px-4 py-2 text-sm text-gray-600 dark:text-gray-400"><span className="ok text-emerald-500 font-bold">✓</span> &lt;100ms API Response</div>
+            <div className="trust-pill flex items-center gap-2 bg-gray-50 dark:bg-white/[0.03] border border-gray-200 dark:border-white/10 rounded-lg px-4 py-2 text-sm text-gray-600 dark:text-gray-400"><span className="ok text-emerald-500 font-bold">✓</span> GDPR Compliant</div>
           </div>
         </div>
       )
     },
     {
-      id: 'api-keys',
-      title: 'API Keys',
+      id: 'gs-setup',
+      title: '5-Minute Setup',
       content: (
         <div className="space-y-8">
           <div className="space-y-4">
-            <h2 className="text-4xl font-black text-gray-900 dark:text-white tracking-tight">API Keys</h2>
+            <h2 className="text-3xl font-black text-gray-900 dark:text-white tracking-tight font-syne">⚙️ 5-Minute Setup</h2>
             <p className="text-gray-600 dark:text-gray-400 text-lg leading-relaxed font-medium">
-              Your API key is your gateway to our neural intelligence engine. Keep it secure and never share it in client-side code.
+              No complex configurations. No DevOps. Connect your site and start tracking keywords in under 5 minutes.
             </p>
           </div>
           
-          <div className="bg-gray-900 dark:bg-black rounded-[2.5rem] p-10 border border-white/10 space-y-6">
-            <div className="flex items-center gap-4">
-              <Shield className="w-8 h-8 text-emerald-500" />
-              <h4 className="text-xl font-black text-white uppercase tracking-tighter">Security Best Practices</h4>
-            </div>
-            <ul className="space-y-4 text-gray-400 font-medium">
-              <li className="flex items-center gap-3">
-                <div className="w-1.5 h-1.5 rounded-full bg-emerald-500"></div>
-                Store keys in environment variables.
-              </li>
-              <li className="flex items-center gap-3">
-                <div className="w-1.5 h-1.5 rounded-full bg-emerald-500"></div>
-                Rotate keys every 90 days for maximum security.
-              </li>
-              <li className="flex items-center gap-3">
-                <div className="w-1.5 h-1.5 rounded-full bg-emerald-500"></div>
-                Use restricted IP access for production keys.
-              </li>
-            </ul>
-          </div>
-        </div>
-      )
-    },
-    {
-      id: 'usage-guide',
-      title: 'Usage Guide',
-      content: (
-        <div className="space-y-8">
-          <div className="space-y-4">
-            <h2 className="text-4xl font-black text-gray-900 dark:text-white tracking-tight">Usage Guide</h2>
-            <p className="text-gray-600 dark:text-gray-400 text-lg leading-relaxed font-medium">
-              Master the KeywordPro interface to unlock deep competitive insights.
-            </p>
-          </div>
-          
-          <div className="grid gap-6">
-            {[
-              { title: "Keyword Analysis", desc: "Enter any seed keyword to get difficulty, volume, and trend data.", icon: <Search className="w-5 h-5" /> },
-              { title: "Competitor Mapping", desc: "Analyze competitor domains to uncover their top-performing keywords.", icon: <Zap className="w-5 h-5" /> },
-              { title: "Data Export", desc: "Download your research in CSV or JSON format for external reporting.", icon: <BookOpen className="w-5 h-5" /> }
-            ].map((item, i) => (
-              <div key={i} className="flex gap-6 p-6 bg-white dark:bg-white/[0.03] border border-gray-100 dark:border-white/5 rounded-3xl">
-                <div className="flex-shrink-0 w-12 h-12 bg-gray-50 dark:bg-white/5 rounded-2xl flex items-center justify-center text-blue-600">
-                  {item.icon}
-                </div>
-                <div className="space-y-1">
-                  <h4 className="font-black text-gray-900 dark:text-white uppercase tracking-tight">{item.title}</h4>
-                  <p className="text-sm text-gray-500 dark:text-gray-400 font-medium leading-relaxed">{item.desc}</p>
-                </div>
+          <div className="steps space-y-6">
+            <div className="step flex gap-4 items-start">
+              <div className="step-n w-8 h-8 rounded-full flex-shrink-0 bg-blue-50 dark:bg-blue-500/10 border border-blue-200 dark:border-blue-500/30 flex items-center justify-center font-syne font-bold text-blue-600 dark:text-blue-400">1</div>
+              <div className="step-body">
+                <h4 className="font-syne font-bold text-lg text-gray-900 dark:text-white mb-1">Create your account</h4>
+                <p className="text-gray-600 dark:text-gray-400 text-sm">Sign up at <a href="#" className="text-blue-600 dark:text-blue-400 hover:underline">app.keywordpro.ai</a>. No credit card required for the free tier.</p>
               </div>
-            ))}
+            </div>
+            <div className="step flex gap-4 items-start">
+              <div className="step-n w-8 h-8 rounded-full flex-shrink-0 bg-blue-50 dark:bg-blue-500/10 border border-blue-200 dark:border-blue-500/30 flex items-center justify-center font-syne font-bold text-blue-600 dark:text-blue-400">2</div>
+              <div className="step-body">
+                <h4 className="font-syne font-bold text-lg text-gray-900 dark:text-white mb-1">Add your domain</h4>
+                <p className="text-gray-600 dark:text-gray-400 text-sm">Enter your website URL. Keyword Pro crawls and indexes your pages automatically in the background.</p>
+              </div>
+            </div>
+            <div className="step flex gap-4 items-start">
+              <div className="step-n w-8 h-8 rounded-full flex-shrink-0 bg-blue-50 dark:bg-blue-500/10 border border-blue-200 dark:border-blue-500/30 flex items-center justify-center font-syne font-bold text-blue-600 dark:text-blue-400">3</div>
+              <div className="step-body">
+                <h4 className="font-syne font-bold text-lg text-gray-900 dark:text-white mb-1">Connect Google Search Console (optional)</h4>
+                <p className="text-gray-600 dark:text-gray-400 text-sm">OAuth one-click integration. Unlocks real impression and click data for your tracked keywords.</p>
+              </div>
+            </div>
+            <div className="step flex gap-4 items-start">
+              <div className="step-n w-8 h-8 rounded-full flex-shrink-0 bg-blue-50 dark:bg-blue-500/10 border border-blue-200 dark:border-blue-500/30 flex items-center justify-center font-syne font-bold text-blue-600 dark:text-blue-400">4</div>
+              <div className="step-body">
+                <h4 className="font-syne font-bold text-lg text-gray-900 dark:text-white mb-1">Generate your API key</h4>
+                <p className="text-gray-600 dark:text-gray-400 text-sm">Go to Settings → API → Generate Key. Use it to automate reports and integrate with your stack.</p>
+              </div>
+            </div>
+          </div>
+
+          <div className="callout c-tip flex gap-3 p-4 bg-emerald-50 dark:bg-emerald-500/10 border border-emerald-200 dark:border-emerald-500/20 rounded-xl items-start">
+            <span className="ico2 text-xl flex-shrink-0 mt-0.5">💡</span>
+            <p className="text-sm text-emerald-800 dark:text-emerald-400 m-0"><strong>Pakistan/India teams:</strong> Choose <code className="bg-emerald-100 dark:bg-emerald-500/20 text-emerald-700 dark:text-emerald-300 px-1.5 py-0.5 rounded font-mono text-xs">region: ap-south-1</code> during setup for lowest latency. Server costs drop by ~60% vs US regions.</p>
           </div>
         </div>
       )

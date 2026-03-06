@@ -14,7 +14,7 @@ import { ContactModal } from './components/ContactModal';
 import { AuthModal } from './components/AuthModal';
 import { FeedbackModal } from './components/FeedbackModal';
 import { OnboardingModal } from './components/OnboardingModal';
-import { Zap, ShieldCheck, Star, Users, Briefcase, Linkedin, X, BookOpen, MessageCircle, Search, Mail, Activity, CheckCircle, Shield, Rocket, Cpu, Database, Globe, Sun, Moon, ChevronRight, Code, Menu, Volume2, VolumeX } from 'lucide-react';
+import { Zap, ShieldCheck, Star, Users, Briefcase, Linkedin, X, BookOpen, MessageCircle, Search, Mail, Activity, CheckCircle, Shield, Rocket, Cpu, Database, Globe, Sun, Moon, ChevronRight, Code, Menu, Volume2, VolumeX, MessageSquare } from 'lucide-react';
 import { audio } from './utils/audioUtils';
 import { typingAudio } from './utils/typingSoundUtils';
 import { satisfyingAudio } from './utils/satisfyingAudioEngine';
@@ -154,7 +154,7 @@ const App: React.FC = () => {
 
       {/* Header with Glassmorphism */}
       <header className="sticky top-0 z-50 bg-white/70 dark:bg-black/50 glass-effect border-b border-gray-200 dark:border-white/10 transition-all duration-500">
-        <div className="max-w-7xl mx-auto px-4 md:px-6 h-20 flex items-center justify-between">
+        <div className="w-full px-4 md:px-8 lg:px-12 h-20 flex items-center justify-between">
           <div 
             className="flex items-center gap-4 md:gap-6 group cursor-pointer hover:scale-[1.02] active:scale-[0.98] transition-all" 
             onClick={() => handleTabChange('TOOL')}
@@ -294,7 +294,7 @@ const App: React.FC = () => {
         )}
       </header>
 
-      <main className="flex-1 py-12 px-6">
+      <main className="flex-1 w-full max-w-7xl mx-auto py-12 px-4 md:px-12">
         {renderContent()}
 
         {activeTab === 'TOOL' && (
@@ -355,134 +355,49 @@ const App: React.FC = () => {
       {/* Built With (Stable Component) */}
       <BuiltWith />
 
-      {/* Floating Footer - Visible on all screens as a modern navigation pill */}
-      <div className="fixed bottom-8 left-1/2 -translate-x-1/2 w-[calc(100%-48px)] max-w-3xl bg-white/90 dark:bg-[#121212]/90 glass-effect border border-gray-200 dark:border-white/10 p-3 rounded-[2rem] flex items-center justify-between px-6 md:px-10 z-[100] shadow-2xl transition-all duration-500 hover:scale-[1.02]">
-        <div className="flex items-center gap-4 md:gap-8 overflow-x-auto no-scrollbar pr-4">
-          {[
-              { id: 'TOOL', icon: Search, label: 'Search' },
-              { id: 'FEATURES', icon: Zap, label: 'Features' },
-              { id: 'BLOG', icon: BookOpen, label: 'Blog' },
-              { id: 'API', icon: Code, label: 'API' },
-              { id: 'PRICING', icon: Star, label: 'Pricing' },
-              { id: 'SUPPORT', icon: MessageCircle, label: 'Support' }
-          ].map((item) => (
-              <button 
-                  key={item.id}
-                  onClick={() => handleTabChange(item.id as Tab)}
-                  onMouseEnter={audio.playHover}
-                  className={`flex flex-col items-center gap-1 transition-all duration-300 active:scale-75 group min-w-[48px] ${activeTab === item.id ? 'text-blue-600 dark:text-blue-400' : 'text-gray-500 dark:text-gray-400 hover:text-gray-900 dark:hover:text-white'}`}
-                  aria-label={`Switch to ${item.label}`}
-              >
-                  <item.icon className={`w-5 h-5 transition-transform group-hover:scale-110 ${activeTab === item.id ? 'stroke-[2.5px]' : 'stroke-[2px]'}`} />
-                  <span className="text-[9px] font-black uppercase tracking-widest">{item.label}</span>
-              </button>
-          ))}
-        </div>
-
-        <div className="w-px h-8 bg-gray-200 dark:bg-white/10 mx-2 hidden sm:block flex-shrink-0"></div>
-
-        <div className="flex items-center gap-4 flex-shrink-0">
-          <button 
-              onClick={() => setIsFeedbackOpen(true)}
-              onMouseEnter={audio.playHover}
-              className="flex flex-col items-center gap-1 text-gray-500 dark:text-gray-400 hover:text-blue-600 dark:hover:text-blue-400 active:scale-90 transition-all duration-500 group"
-              aria-label="Feedback"
-          >
-              <div className="group-hover:scale-110 transition-transform">
-                <MessageCircle className="w-5 h-5" />
-              </div>
-              <span className="text-[9px] font-black uppercase tracking-widest">Feedback</span>
-          </button>
-
-          <button 
-              onClick={toggleTheme}
-              onMouseEnter={audio.playHover}
-              className="flex flex-col items-center gap-1 text-gray-500 dark:text-gray-400 hover:text-gray-900 dark:hover:text-white active:rotate-180 transition-all duration-500 group"
-              aria-label="Toggle Theme"
-          >
-              <div className="group-hover:scale-110 transition-transform">
-                {theme === 'light' ? <Moon className="w-5 h-5" /> : <Sun className="w-5 h-5 text-amber-500" />}
-              </div>
-              <span className="text-[9px] font-black uppercase tracking-widest">{theme === 'light' ? 'Dark' : 'Light'}</span>
-          </button>
-        </div>
+      {/* --- Bottom Navigation Bar --- */}
+      <div className="fixed bottom-4 left-1/2 -translate-x-1/2 w-[95%] md:w-[80%] max-w-5xl bg-black/80 backdrop-blur-lg border border-white/10 rounded-full py-3 px-6 md:px-12 flex justify-between items-center shadow-[0_20px_50px_rgba(0,0,0,0.5)] z-[60] nav-bar-refresh">
+        <button onClick={() => handleTabChange('TOOL')} className={`relative z-10 flex flex-col items-center gap-1 transition-all duration-200 ${activeTab === 'TOOL' ? 'opacity-100' : 'opacity-60 hover:opacity-100'}`}>
+          <Search size={20} className={activeTab === 'TOOL' ? 'text-blue-400' : 'text-white'} />
+          <span className={`text-[10px] font-bold uppercase tracking-wider ${activeTab === 'TOOL' ? 'text-blue-400' : 'text-white'}`}>Search</span>
+        </button>
+        <button onClick={() => handleTabChange('FEATURES')} className={`relative z-10 flex flex-col items-center gap-1 transition-all duration-200 ${activeTab === 'FEATURES' ? 'opacity-100' : 'opacity-60 hover:opacity-100'}`}>
+          <Zap size={20} className={activeTab === 'FEATURES' ? 'text-blue-400' : 'text-white'} />
+          <span className={`text-[10px] font-bold uppercase tracking-wider ${activeTab === 'FEATURES' ? 'text-blue-400' : 'text-white'}`}>Features</span>
+        </button>
+        <button onClick={() => handleTabChange('BLOG')} className={`relative z-10 flex flex-col items-center gap-1 transition-all duration-200 ${activeTab === 'BLOG' ? 'opacity-100' : 'opacity-60 hover:opacity-100'}`}>
+          <BookOpen size={20} className={activeTab === 'BLOG' ? 'text-blue-400' : 'text-white'} />
+          <span className={`text-[10px] font-bold uppercase tracking-wider ${activeTab === 'BLOG' ? 'text-blue-400' : 'text-white'}`}>Blog</span>
+        </button>
+        <button onClick={() => setIsFeedbackOpen(true)} className="relative z-10 flex flex-col items-center gap-1 opacity-60 hover:opacity-100 transition-all duration-200">
+          <MessageSquare size={20} className="text-white" />
+          <span className="text-[10px] font-bold uppercase tracking-wider text-white">Feedback</span>
+        </button>
+        <button onClick={toggleTheme} className="relative z-10 flex flex-col items-center gap-1 opacity-60 hover:opacity-100 transition-all duration-200">
+          {theme === 'light' ? <Moon size={20} className="text-white" /> : <Sun size={20} className="text-yellow-400" />}
+          <span className="text-[10px] font-bold uppercase tracking-wider text-white">{theme === 'light' ? 'Dark' : 'Light'}</span>
+        </button>
       </div>
 
-      <footer className="bg-white dark:bg-black border-t border-gray-200 dark:border-white/10 py-24 px-6 transition-all duration-500 reveal-on-scroll animate-fade-in">
-        <div className="max-w-7xl mx-auto grid md:grid-cols-4 gap-16 text-center">
-            {/* Branding Column */}
-            <div className="flex flex-col items-center md:items-start space-y-8">
-                <div className="flex items-center gap-3 cursor-pointer transition-transform hover:scale-105" onClick={() => setActiveTab('TOOL')}>
-                    <Zap className="w-5 h-5 text-blue-600 dark:text-blue-400" />
-                    <span className="text-2xl font-black tracking-tighter dark:text-white">KeywordPro</span>
-                </div>
-                <p className="text-gray-700 dark:text-gray-300 text-sm font-medium leading-relaxed max-w-xs text-center md:text-left">
-                    The next generation of SEO intelligence. Built for agencies and data-driven growth teams looking for an edge.
-                </p>
-                <div className="flex justify-center md:justify-start gap-4">
-                  <a href="https://x.com" target="_blank" rel="noreferrer" className="p-3 bg-gray-50 dark:bg-white/5 rounded-xl text-gray-600 hover:text-blue-600 transition-all border border-transparent hover:border-gray-200 dark:hover:border-white/10" aria-label="Visit Twitter"><X className="w-5 h-5" /></a>
-                  <a href="https://linkedin.com" target="_blank" rel="noreferrer" className="p-3 bg-gray-50 dark:bg-white/5 rounded-xl text-gray-600 hover:text-blue-600 transition-all border border-transparent hover:border-gray-200 dark:hover:border-white/10" aria-label="Visit LinkedIn"><Linkedin className="w-5 h-5" /></a>
-                </div>
+      {/* --- Main Footer Links --- */}
+      <footer className="bg-black py-20 px-6 border-t border-white/5 text-center pb-28">
+        <div className="space-y-8 max-w-md mx-auto">
+          <div className="grid grid-cols-1 gap-4 text-white/60 font-medium uppercase tracking-widest text-sm">
+            <button onClick={() => handleTabChange('FEATURES')} className="hover:text-blue-400 transition-colors">Features</button>
+            <button onClick={() => handleTabChange('BLOG')} className="hover:text-blue-400 transition-colors">Blog</button>
+            <button onClick={() => handleTabChange('DOCS')} className="hover:text-blue-400 transition-colors">Documentation</button>
+            <button onClick={() => handleTabChange('API')} className="hover:text-blue-400 transition-colors">API Access</button>
+            <button onClick={() => handleTabChange('PRICING')} className="hover:text-blue-400 transition-colors">Pricing</button>
+          </div>
+          <div className="pt-8 border-t border-white/5 space-y-4">
+            <p className="text-white/40 text-xs uppercase tracking-[0.2em]">Company</p>
+            <div className="flex flex-col gap-3 text-white/60 text-sm font-medium uppercase tracking-widest">
+              <button onClick={() => handleTabChange('ABOUT')} className="hover:text-blue-400 transition-colors">About Us</button>
+              <button onClick={() => handleTabChange('SUPPORT')} className="hover:text-blue-400 transition-colors">Support</button>
+              <button onClick={() => handleTabChange('PRIVACY')} className="hover:text-blue-400 transition-colors">Privacy Policy</button>
+              <button onClick={() => handleTabChange('TERMS')} className="hover:text-blue-400 transition-colors">Terms of Service</button>
             </div>
-
-            {/* Product Column */}
-            <div className="flex flex-col items-center space-y-8">
-                <h5 className="font-black text-gray-900 dark:text-white uppercase tracking-[0.4em] text-[9px]">Product</h5>
-                <ul className="flex flex-col items-center space-y-4">
-                    <FooterLink label="Keyword Finder" tab="TOOL" />
-                    <FooterLink label="Features" tab="FEATURES" />
-                    <FooterLink label="Blog" tab="BLOG" />
-                    <FooterLink label="Documentation" tab="DOCS" />
-                    <FooterLink label="API Access" tab="API" />
-                    <FooterLink label="Pricing" tab="PRICING" />
-                    <FooterLink label="Roadmap" tab="FEATURES" />
-                </ul>
-            </div>
-
-            {/* Company Column */}
-            <div className="flex flex-col items-center space-y-8">
-                <h5 className="font-black text-gray-900 dark:text-white uppercase tracking-[0.4em] text-[9px]">Company</h5>
-                <ul className="flex flex-col items-center space-y-4">
-                    <FooterLink label="About Us" tab="ABOUT" />
-                    <FooterLink label="Support" tab="SUPPORT" />
-                    <FooterLink label="Privacy Policy" tab="PRIVACY" />
-                    <FooterLink label="Terms of Service" tab="TERMS" />
-                </ul>
-            </div>
-
-            {/* Newsletter Column */}
-            <div className="flex flex-col items-center md:items-start space-y-8">
-                <h5 className="font-black text-gray-900 dark:text-white uppercase tracking-[0.4em] text-[9px] w-full text-center md:text-left">Stay Updated</h5>
-                <div className="flex flex-col gap-3 w-full max-w-xs mx-auto">
-                    <input 
-                      type="email" 
-                      placeholder="Professional Email" 
-                      aria-label="Email for Newsletter"
-                      className="bg-gray-50 dark:bg-white/5 border border-gray-200 dark:border-white/10 rounded-xl px-4 py-3 text-sm dark:text-white outline-none focus:border-blue-500 transition-all font-medium" 
-                    />
-                    <button className="bg-gray-900 dark:bg-white text-white dark:text-black py-3 rounded-xl font-black text-[10px] uppercase tracking-widest shadow-xl hover:scale-[1.02] active:scale-[0.98] transition-all">
-                      Subscribe
-                    </button>
-                </div>
-            </div>
-        </div>
-
-        <div className="max-w-7xl mx-auto mt-24 pt-12 border-t border-gray-200 dark:border-white/10 flex flex-col md:flex-row items-center justify-between gap-8">
-            <p className="text-gray-600 dark:text-gray-400 text-[10px] font-black uppercase tracking-[0.3em]">
-                &copy; 2025 KeywordPro Labs Inc.
-            </p>
-            {/* Social Profile Integration */}
-            <div className="flex items-center gap-10">
-                <a href="https://github.com" target="_blank" rel="noreferrer" className="text-gray-600 dark:text-gray-400 hover:text-blue-500 transition-all duration-300 hover:scale-110 active:scale-95" aria-label="GitHub">
-                  <Users className="w-5 h-5" />
-                </a>
-                <a href="https://dribbble.com" target="_blank" rel="noreferrer" className="text-gray-600 dark:text-gray-400 hover:text-amber-600 transition-all duration-300 hover:scale-110 active:scale-95" aria-label="Dribbble">
-                  <Star className="w-5 h-5" />
-                </a>
-                <a href="https://behance.net" target="_blank" rel="noreferrer" className="text-gray-600 dark:text-gray-400 hover:text-purple-600 transition-all duration-300 hover:scale-110 active:scale-95" aria-label="Behance">
-                  <Briefcase className="w-5 h-5" />
-                </a>
-            </div>
+          </div>
         </div>
       </footer>
     </div>
