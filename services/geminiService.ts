@@ -1,6 +1,71 @@
 
 import { GoogleGenAI, Type } from "@google/genai";
-import { KeywordSuggestion, KeywordResponse } from "../types";
+import { KeywordSuggestion, KeywordResponse, SerpAnalysisResponse } from "../types";
+
+export const analyzeSerp = async (keyword: string, signal?: AbortSignal): Promise<SerpAnalysisResponse | null> => {
+  const ai = new GoogleGenAI({ apiKey: process.env.GEMINI_API_KEY as string });
+  
+  const prompt = `Perform a detailed Search Engine Results Page (SERP) analysis for the target keyword: "${keyword}".
+  Provide insights into competitor content, keyword difficulty, and ranking factors based on current SEO best practices.
+  Generate realistic mock data for the top 10 search results.`;
+
+  try {
+    const response = await ai.models.generateContent({
+      model: 'gemini-3-flash-preview',
+      contents: prompt,
+      config: {
+        systemInstruction: "Act as an advanced SEO SERP analysis tool. Return ONLY raw JSON data matching the requested schema.",
+        responseMimeType: "application/json",
+        thinkingConfig: { thinkingBudget: 0 },
+        responseSchema: {
+          type: Type.OBJECT,
+          properties: {
+            keyword: { type: Type.STRING },
+            overallDifficulty: { type: Type.INTEGER, description: "Score from 0 to 100" },
+            searchIntent: { type: Type.STRING, description: "e.g., Informational, Transactional, Navigational, Commercial" },
+            averageWordCount: { type: Type.INTEGER },
+            topRankingFactors: {
+              type: Type.ARRAY,
+              items: { type: Type.STRING },
+              description: "Top 3-5 ranking factors for this SERP"
+            },
+            results: {
+              type: Type.ARRAY,
+              items: {
+                type: Type.OBJECT,
+                properties: {
+                  position: { type: Type.INTEGER },
+                  title: { type: Type.STRING },
+                  url: { type: Type.STRING },
+                  domainAuthority: { type: Type.INTEGER, description: "0-100" },
+                  pageAuthority: { type: Type.INTEGER, description: "0-100" },
+                  wordCount: { type: Type.INTEGER },
+                  keywordDensity: { type: Type.STRING, description: "Percentage, e.g., '1.5%'" },
+                  estimatedTraffic: { type: Type.STRING, description: "e.g., '1.2K'" }
+                },
+                required: ["position", "title", "url", "domainAuthority", "pageAuthority", "wordCount", "keywordDensity", "estimatedTraffic"]
+              }
+            }
+          },
+          required: ["keyword", "overallDifficulty", "searchIntent", "averageWordCount", "topRankingFactors", "results"]
+        }
+      }
+    });
+
+    const text = response.text;
+    if (!text) return null;
+    
+    const jsonStr = text.replace(/```json/g, '').replace(/```/g, '').trim();
+    return JSON.parse(jsonStr);
+  } catch (e: any) {
+    if (e.name === 'AbortError') {
+      console.log('Request aborted');
+      throw e;
+    }
+    console.error("Failed to analyze SERP:", e);
+    return null;
+  }
+};
 
 export const getKeywordSuggestions = async (query: string, mode: 'keyword' | 'competitor' = 'keyword', signal?: AbortSignal): Promise<KeywordResponse> => {
   // Create a fresh instance for every call to ensure the latest API key is used

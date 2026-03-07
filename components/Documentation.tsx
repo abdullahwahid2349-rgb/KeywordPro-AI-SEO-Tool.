@@ -279,6 +279,76 @@ if (signature !== expectedSignature) {
           </div>
         </div>
       )
+    },
+    {
+      id: 'serp-analysis',
+      title: 'SERP Analysis',
+      content: (
+        <div className="space-y-8">
+          <div className="space-y-4">
+            <h2 className="text-3xl font-black text-gray-900 dark:text-white tracking-tight font-syne">🎯 SERP Analysis</h2>
+            <p className="text-gray-600 dark:text-gray-400 text-lg leading-relaxed font-medium">
+              Understand what it takes to rank on the first page of Google with our AI-powered SERP Analyzer.
+            </p>
+          </div>
+
+          <div className="space-y-6">
+            <h3 className="text-xl font-bold text-gray-900 dark:text-white font-syne">How it Works</h3>
+            <p className="text-gray-600 dark:text-gray-400">
+              The SERP Analyzer uses advanced AI models to deconstruct the top 10 search results for any given keyword. It provides actionable insights into competitor content, keyword difficulty, and ranking factors.
+            </p>
+            
+            <div className="grid md:grid-cols-2 gap-6">
+              <div className="bg-white dark:bg-white/[0.02] border border-gray-200 dark:border-white/10 rounded-xl p-6 shadow-sm">
+                <h4 className="font-bold text-gray-900 dark:text-white mb-2 flex items-center gap-2">
+                  <span className="w-6 h-6 rounded-full bg-blue-100 dark:bg-blue-500/20 text-blue-600 dark:text-blue-400 flex items-center justify-center text-xs">1</span>
+                  Enter Target Keyword
+                </h4>
+                <p className="text-sm text-gray-600 dark:text-gray-400">Input the exact phrase you want to rank for. The tool will simulate a search and analyze the current top results.</p>
+              </div>
+              <div className="bg-white dark:bg-white/[0.02] border border-gray-200 dark:border-white/10 rounded-xl p-6 shadow-sm">
+                <h4 className="font-bold text-gray-900 dark:text-white mb-2 flex items-center gap-2">
+                  <span className="w-6 h-6 rounded-full bg-blue-100 dark:bg-blue-500/20 text-blue-600 dark:text-blue-400 flex items-center justify-center text-xs">2</span>
+                  Review Difficulty & Intent
+                </h4>
+                <p className="text-sm text-gray-600 dark:text-gray-400">Check the overall difficulty score (0-100) and the primary search intent (Informational, Transactional, etc.) to align your content strategy.</p>
+              </div>
+              <div className="bg-white dark:bg-white/[0.02] border border-gray-200 dark:border-white/10 rounded-xl p-6 shadow-sm">
+                <h4 className="font-bold text-gray-900 dark:text-white mb-2 flex items-center gap-2">
+                  <span className="w-6 h-6 rounded-full bg-blue-100 dark:bg-blue-500/20 text-blue-600 dark:text-blue-400 flex items-center justify-center text-xs">3</span>
+                  Analyze Competitors
+                </h4>
+                <p className="text-sm text-gray-600 dark:text-gray-400">Examine the top 10 results. Look at their Domain Authority (DA), Page Authority (PA), word count, and estimated traffic.</p>
+              </div>
+              <div className="bg-white dark:bg-white/[0.02] border border-gray-200 dark:border-white/10 rounded-xl p-6 shadow-sm">
+                <h4 className="font-bold text-gray-900 dark:text-white mb-2 flex items-center gap-2">
+                  <span className="w-6 h-6 rounded-full bg-blue-100 dark:bg-blue-500/20 text-blue-600 dark:text-blue-400 flex items-center justify-center text-xs">4</span>
+                  Optimize Your Content
+                </h4>
+                <p className="text-sm text-gray-600 dark:text-gray-400">Use the "Top Ranking Factors" and "Avg. Word Count" metrics as a blueprint for creating content that outperforms the current leaders.</p>
+              </div>
+            </div>
+          </div>
+
+          <div className="space-y-4">
+            <h3 className="text-xl font-bold text-gray-900 dark:text-white font-syne">Key Metrics Explained</h3>
+            <ul className="space-y-3 text-gray-600 dark:text-gray-400">
+              <li className="flex gap-3">
+                <span className="font-bold text-gray-900 dark:text-white min-w-[120px]">Overall Difficulty:</span>
+                <span>A composite score (0-100) indicating how hard it is to rank in the top 10. Scores above 70 are considered 'Hard'.</span>
+              </li>
+              <li className="flex gap-3">
+                <span className="font-bold text-gray-900 dark:text-white min-w-[120px]">Search Intent:</span>
+                <span>The primary goal of the user searching this keyword (e.g., learning something, buying a product, finding a specific website).</span>
+              </li>
+              <li className="flex gap-3">
+                <span className="font-bold text-gray-900 dark:text-white min-w-[120px]">DA / PA:</span>
+                <span>Domain Authority and Page Authority. Higher numbers indicate stronger, more authoritative competitors.</span>
+              </li>
+            </ul>
+          </div>
+        </div>
+      )
     }
   ];
 

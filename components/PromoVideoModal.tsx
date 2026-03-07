@@ -38,7 +38,8 @@ export const PromoVideoModal: React.FC<PromoVideoModalProps> = ({ isOpen, onClos
     if (typeof process !== 'undefined' && process.env && process.env.API_KEY) return process.env.API_KEY;
     // @ts-ignore
     if (typeof process !== 'undefined' && process.env && process.env.GEMINI_API_KEY) return process.env.GEMINI_API_KEY;
-    return import.meta.env.VITE_GEMINI_API_KEY || '';
+    // @ts-ignore
+    return import.meta.env?.VITE_GEMINI_API_KEY || '';
   };
 
   const fetchVideoBlob = async (uri: string) => {

@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { Search, TrendingUp, BarChart3, DollarSign, Download, Loader2, Copy, Check, FileText, Info, Calculator, ShieldCheck, Zap, Users, Star, Bookmark, History, Trash2, Play, ArrowUpDown, MousePointerClick, Globe } from 'lucide-react';
+import { Search, TrendingUp, BarChart3, DollarSign, Download, Loader2, Copy, Check, FileText, Info, Calculator, ShieldCheck, Zap, Users, Star, Bookmark, History, Trash2, Play, ArrowUpDown, MousePointerClick, Globe, AlertCircle } from 'lucide-react';
 import { LineChart, Line, ResponsiveContainer, YAxis } from 'recharts';
 import { getKeywordSuggestions } from '../services/geminiService';
 import { KeywordSuggestion } from '../types';

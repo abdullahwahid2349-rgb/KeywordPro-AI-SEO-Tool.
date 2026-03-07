@@ -1,5 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { KeywordTool } from './components/KeywordTool';
+import { SerpAnalyzer } from './components/SerpAnalyzer';
 import { Documentation } from './components/Documentation';
 import { BuiltWith } from './components/BuiltWith';
 import { Pricing } from './components/Pricing';
@@ -27,7 +28,7 @@ export const viewport = {
   maximumScale: 1,
 };
 
-export type Tab = 'TOOL' | 'FEATURES' | 'BLOG' | 'API' | 'DOCS' | 'PRICING' | 'ABOUT' | 'PRIVACY' | 'TERMS' | 'SUPPORT';
+export type Tab = 'TOOL' | 'SERP' | 'FEATURES' | 'BLOG' | 'API' | 'DOCS' | 'PRICING' | 'ABOUT' | 'PRIVACY' | 'TERMS' | 'SUPPORT';
 
 const App: React.FC = () => {
   useScrollReveal();
@@ -112,6 +113,7 @@ const App: React.FC = () => {
     const content = (() => {
       switch (activeTab) {
         case 'TOOL': return <KeywordTool />;
+        case 'SERP': return <SerpAnalyzer />;
         case 'FEATURES': return <Features />;
         case 'BLOG': return <Blog />;
         case 'API': return <Api />;
@@ -182,14 +184,14 @@ const App: React.FC = () => {
           {/* Desktop Navigation */}
           <div className="hidden md:flex items-center gap-8">
             <nav className="flex items-center gap-8 text-[11px] font-black uppercase tracking-[0.2em] text-gray-600 dark:text-gray-400">
-                {['TOOL', 'FEATURES', 'BLOG', 'DOCS', 'PRICING', 'SUPPORT'].map((tab) => (
+                {['TOOL', 'SERP', 'FEATURES', 'BLOG', 'DOCS', 'PRICING', 'SUPPORT'].map((tab) => (
                     <button 
                         key={tab}
                         onClick={() => handleTabChange(tab as Tab)}
                         onMouseEnter={audio.playHover}
                         className={`transition-all hover:scale-105 hover:text-gray-900 dark:hover:text-white ${activeTab === tab ? 'text-gray-900 dark:text-white underline decoration-blue-500 decoration-2 underline-offset-8' : ''}`}
                     >
-                        {tab === 'TOOL' ? 'Analyzer' : tab.charAt(0) + tab.slice(1).toLowerCase()}
+                        {tab === 'TOOL' ? 'Analyzer' : tab === 'SERP' ? 'SERP' : tab.charAt(0) + tab.slice(1).toLowerCase()}
                     </button>
                 ))}
             </nav>
@@ -268,13 +270,13 @@ const App: React.FC = () => {
         {isMobileMenuOpen && (
           <div className="md:hidden absolute top-20 left-0 w-full bg-white dark:bg-[#0A0A0A] border-b border-gray-200 dark:border-white/10 shadow-2xl animate-in slide-in-from-top-2 duration-300">
             <nav className="flex flex-col p-4 space-y-2">
-              {['TOOL', 'FEATURES', 'BLOG', 'DOCS', 'PRICING', 'SUPPORT'].map((tab) => (
+              {['TOOL', 'SERP', 'FEATURES', 'BLOG', 'DOCS', 'PRICING', 'SUPPORT'].map((tab) => (
                 <button 
                   key={tab}
                   onClick={() => handleTabChange(tab as Tab)}
                   className={`p-4 text-left rounded-xl font-black uppercase tracking-widest text-xs transition-all ${activeTab === tab ? 'bg-blue-50 dark:bg-blue-500/10 text-blue-600 dark:text-blue-400' : 'text-gray-600 dark:text-gray-400 hover:bg-gray-50 dark:hover:bg-white/5'}`}
                 >
-                  {tab === 'TOOL' ? 'Analyzer' : tab.charAt(0) + tab.slice(1).toLowerCase()}
+                  {tab === 'TOOL' ? 'Analyzer' : tab === 'SERP' ? 'SERP' : tab.charAt(0) + tab.slice(1).toLowerCase()}
                 </button>
               ))}
               <div className="pt-4 mt-2 border-t border-gray-100 dark:border-white/10">
