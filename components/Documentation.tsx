@@ -88,6 +88,197 @@ export const Documentation: React.FC = () => {
           </div>
         </div>
       )
+    },
+    {
+      id: 'api-auth',
+      title: 'API Authentication',
+      content: (
+        <div className="space-y-8">
+          <div className="space-y-4">
+            <h2 className="text-3xl font-black text-gray-900 dark:text-white tracking-tight font-syne">🔑 API Authentication</h2>
+            <p className="text-gray-600 dark:text-gray-400 text-lg leading-relaxed font-medium">
+              Secure your API requests using Bearer tokens. Learn how to authenticate and handle common errors.
+            </p>
+          </div>
+
+          <div className="space-y-4">
+            <h3 className="text-xl font-bold text-gray-900 dark:text-white font-syne">Authentication Method</h3>
+            <p className="text-gray-600 dark:text-gray-400">
+              All API requests must include your API key in the <code className="bg-gray-100 dark:bg-white/10 px-1.5 py-0.5 rounded font-mono text-sm">Authorization</code> header as a Bearer token.
+            </p>
+            <div className="code-block bg-[#0a1422] rounded-xl overflow-hidden border border-white/10">
+              <div className="flex items-center justify-between px-4 py-2 bg-white/5 border-b border-white/10">
+                <span className="text-xs font-mono text-gray-400">cURL</span>
+                <button 
+                  onClick={() => handleCopy('curl -H "Authorization: Bearer YOUR_API_KEY" https://api.keywordpro.ai/v1/analyze', 'auth-curl')}
+                  className="text-gray-400 hover:text-white transition-colors"
+                >
+                  {copied === 'auth-curl' ? <Check className="w-4 h-4 text-emerald-400" /> : <Copy className="w-4 h-4" />}
+                </button>
+              </div>
+              <pre className="p-4 text-sm font-mono text-gray-300 overflow-x-auto">
+                <code>curl -H "Authorization: Bearer YOUR_API_KEY" https://api.keywordpro.ai/v1/analyze</code>
+              </pre>
+            </div>
+          </div>
+
+          <div className="space-y-6">
+            <h3 className="text-xl font-bold text-gray-900 dark:text-white font-syne">Common Authentication Errors</h3>
+            
+            <div className="grid gap-4">
+              <div className="bg-white dark:bg-white/[0.02] border border-gray-200 dark:border-white/10 rounded-xl p-5">
+                <div className="flex items-start justify-between mb-2">
+                  <h4 className="font-mono font-bold text-red-500 dark:text-red-400">401 Unauthorized</h4>
+                  <span className="text-xs font-mono bg-red-100 dark:bg-red-500/10 text-red-600 dark:text-red-400 px-2 py-1 rounded">invalid_api_key</span>
+                </div>
+                <p className="text-gray-600 dark:text-gray-400 text-sm mb-3">The provided API key is invalid, malformed, or has been revoked.</p>
+                <div className="bg-gray-50 dark:bg-black/20 rounded-lg p-3 border border-gray-100 dark:border-white/5">
+                  <span className="text-xs font-bold text-gray-900 dark:text-white uppercase tracking-wider mb-1 block">Solution</span>
+                  <p className="text-sm text-gray-600 dark:text-gray-400">Verify your API key in the dashboard. Ensure there are no extra spaces when copying. If compromised, generate a new key immediately.</p>
+                </div>
+              </div>
+
+              <div className="bg-white dark:bg-white/[0.02] border border-gray-200 dark:border-white/10 rounded-xl p-5">
+                <div className="flex items-start justify-between mb-2">
+                  <h4 className="font-mono font-bold text-red-500 dark:text-red-400">401 Unauthorized</h4>
+                  <span className="text-xs font-mono bg-red-100 dark:bg-red-500/10 text-red-600 dark:text-red-400 px-2 py-1 rounded">missing_auth_header</span>
+                </div>
+                <p className="text-gray-600 dark:text-gray-400 text-sm mb-3">The <code className="font-mono text-xs">Authorization</code> header is missing from your request.</p>
+                <div className="bg-gray-50 dark:bg-black/20 rounded-lg p-3 border border-gray-100 dark:border-white/5">
+                  <span className="text-xs font-bold text-gray-900 dark:text-white uppercase tracking-wider mb-1 block">Solution</span>
+                  <p className="text-sm text-gray-600 dark:text-gray-400">Ensure you are sending the <code className="font-mono text-xs">Authorization: Bearer YOUR_KEY</code> header with every API call.</p>
+                </div>
+              </div>
+
+              <div className="bg-white dark:bg-white/[0.02] border border-gray-200 dark:border-white/10 rounded-xl p-5">
+                <div className="flex items-start justify-between mb-2">
+                  <h4 className="font-mono font-bold text-amber-500 dark:text-amber-400">403 Forbidden</h4>
+                  <span className="text-xs font-mono bg-amber-100 dark:bg-amber-500/10 text-amber-600 dark:text-amber-400 px-2 py-1 rounded">insufficient_permissions</span>
+                </div>
+                <p className="text-gray-600 dark:text-gray-400 text-sm mb-3">Your API key is valid, but your current plan does not allow access to this specific endpoint.</p>
+                <div className="bg-gray-50 dark:bg-black/20 rounded-lg p-3 border border-gray-100 dark:border-white/5">
+                  <span className="text-xs font-bold text-gray-900 dark:text-white uppercase tracking-wider mb-1 block">Solution</span>
+                  <p className="text-sm text-gray-600 dark:text-gray-400">Upgrade your plan in the billing dashboard to access premium endpoints (e.g., Competitor Analysis).</p>
+                </div>
+              </div>
+              
+              <div className="bg-white dark:bg-white/[0.02] border border-gray-200 dark:border-white/10 rounded-xl p-5">
+                <div className="flex items-start justify-between mb-2">
+                  <h4 className="font-mono font-bold text-blue-500 dark:text-blue-400">429 Too Many Requests</h4>
+                  <span className="text-xs font-mono bg-blue-100 dark:bg-blue-500/10 text-blue-600 dark:text-blue-400 px-2 py-1 rounded">rate_limit_exceeded</span>
+                </div>
+                <p className="text-gray-600 dark:text-gray-400 text-sm mb-3">You have exceeded the number of allowed API requests for your current tier.</p>
+                <div className="bg-gray-50 dark:bg-black/20 rounded-lg p-3 border border-gray-100 dark:border-white/5">
+                  <span className="text-xs font-bold text-gray-900 dark:text-white uppercase tracking-wider mb-1 block">Solution</span>
+                  <p className="text-sm text-gray-600 dark:text-gray-400">Implement exponential backoff in your code. Check the <code className="font-mono text-xs">X-RateLimit-Reset</code> header to see when you can make requests again.</p>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+      )
+    },
+    {
+      id: 'api-webhooks',
+      title: 'API Webhooks',
+      content: (
+        <div className="space-y-8">
+          <div className="space-y-4">
+            <h2 className="text-3xl font-black text-gray-900 dark:text-white tracking-tight font-syne">🪝 API Webhooks</h2>
+            <p className="text-gray-600 dark:text-gray-400 text-lg leading-relaxed font-medium">
+              Subscribe to real-time event notifications to keep your system in sync with Keyword Pro without polling.
+            </p>
+          </div>
+
+          <div className="space-y-4">
+            <h3 className="text-xl font-bold text-gray-900 dark:text-white font-syne">Setting Up an Endpoint</h3>
+            <p className="text-gray-600 dark:text-gray-400">
+              Create an HTTPS endpoint on your server that accepts POST requests. Keyword Pro will send a JSON payload to this URL whenever a subscribed event occurs.
+            </p>
+            <div className="code-block bg-[#0a1422] rounded-xl overflow-hidden border border-white/10">
+              <div className="flex items-center justify-between px-4 py-2 bg-white/5 border-b border-white/10">
+                <span className="text-xs font-mono text-gray-400">Node.js / Express</span>
+                <button 
+                  onClick={() => handleCopy(`app.post('/webhooks/keyword-pro', express.json(), (req, res) => {\n  const event = req.body;\n  console.log('Received event:', event.type);\n  res.status(200).send('OK');\n});`, 'webhook-express')}
+                  className="text-gray-400 hover:text-white transition-colors"
+                >
+                  {copied === 'webhook-express' ? <Check className="w-4 h-4 text-emerald-400" /> : <Copy className="w-4 h-4" />}
+                </button>
+              </div>
+              <pre className="p-4 text-sm font-mono text-gray-300 overflow-x-auto">
+                <code>{`app.post('/webhooks/keyword-pro', express.json(), (req, res) => {
+  const event = req.body;
+  
+  // Handle the event
+  console.log('Received event:', event.type);
+  
+  // Acknowledge receipt
+  res.status(200).send('OK');
+});`}</code>
+              </pre>
+            </div>
+            <div className="callout c-tip flex gap-3 p-4 bg-blue-50 dark:bg-blue-500/10 border border-blue-200 dark:border-blue-500/20 rounded-xl items-start mt-4">
+              <span className="ico2 text-xl flex-shrink-0 mt-0.5">ℹ️</span>
+              <p className="text-sm text-blue-800 dark:text-blue-400 m-0"><strong>Acknowledge quickly:</strong> Your endpoint must return a <code className="bg-blue-100 dark:bg-blue-500/20 text-blue-700 dark:text-blue-300 px-1.5 py-0.5 rounded font-mono text-xs">200 OK</code> status code within 3 seconds. Otherwise, we will retry the delivery.</p>
+            </div>
+          </div>
+
+          <div className="space-y-6">
+            <h3 className="text-xl font-bold text-gray-900 dark:text-white font-syne">Verifying Signatures</h3>
+            <p className="text-gray-600 dark:text-gray-400">
+              To ensure the webhook was actually sent by Keyword Pro, verify the signature included in the <code className="bg-gray-100 dark:bg-white/10 px-1.5 py-0.5 rounded font-mono text-sm">X-KeywordPro-Signature</code> header using your webhook secret.
+            </p>
+            <div className="code-block bg-[#0a1422] rounded-xl overflow-hidden border border-white/10">
+              <div className="flex items-center justify-between px-4 py-2 bg-white/5 border-b border-white/10">
+                <span className="text-xs font-mono text-gray-400">Node.js</span>
+                <button 
+                  onClick={() => handleCopy(`const crypto = require('crypto');\n\nconst signature = req.headers['x-keywordpro-signature'];\nconst expectedSignature = crypto\n  .createHmac('sha256', process.env.WEBHOOK_SECRET)\n  .update(JSON.stringify(req.body))\n  .digest('hex');\n\nif (signature !== expectedSignature) {\n  return res.status(401).send('Invalid signature');\n}`, 'webhook-verify')}
+                  className="text-gray-400 hover:text-white transition-colors"
+                >
+                  {copied === 'webhook-verify' ? <Check className="w-4 h-4 text-emerald-400" /> : <Copy className="w-4 h-4" />}
+                </button>
+              </div>
+              <pre className="p-4 text-sm font-mono text-gray-300 overflow-x-auto">
+                <code>{`const crypto = require('crypto');
+
+const signature = req.headers['x-keywordpro-signature'];
+const expectedSignature = crypto
+  .createHmac('sha256', process.env.WEBHOOK_SECRET)
+  .update(JSON.stringify(req.body))
+  .digest('hex');
+
+if (signature !== expectedSignature) {
+  return res.status(401).send('Invalid signature');
+}`}</code>
+              </pre>
+            </div>
+          </div>
+
+          <div className="space-y-6">
+            <h3 className="text-xl font-bold text-gray-900 dark:text-white font-syne">Available Events</h3>
+            <div className="grid gap-4">
+              <div className="bg-white dark:bg-white/[0.02] border border-gray-200 dark:border-white/10 rounded-xl p-5">
+                <div className="flex items-start justify-between mb-2">
+                  <h4 className="font-mono font-bold text-gray-900 dark:text-white">keyword.ranked_up</h4>
+                </div>
+                <p className="text-gray-600 dark:text-gray-400 text-sm">Triggered when a tracked keyword moves up in search engine rankings.</p>
+              </div>
+              <div className="bg-white dark:bg-white/[0.02] border border-gray-200 dark:border-white/10 rounded-xl p-5">
+                <div className="flex items-start justify-between mb-2">
+                  <h4 className="font-mono font-bold text-gray-900 dark:text-white">report.generated</h4>
+                </div>
+                <p className="text-gray-600 dark:text-gray-400 text-sm">Triggered when a scheduled SEO report has finished generating and is ready for download.</p>
+              </div>
+              <div className="bg-white dark:bg-white/[0.02] border border-gray-200 dark:border-white/10 rounded-xl p-5">
+                <div className="flex items-start justify-between mb-2">
+                  <h4 className="font-mono font-bold text-gray-900 dark:text-white">competitor.new_keyword</h4>
+                </div>
+                <p className="text-gray-600 dark:text-gray-400 text-sm">Triggered when a tracked competitor starts ranking for a new keyword.</p>
+              </div>
+            </div>
+          </div>
+        </div>
+      )
     }
   ];
 
